@@ -6,5 +6,5 @@ how to obtain one.
 
 | Variable | Required | Default | Purpose |
 | --- | --- | --- | --- |
-| `PORT` | No | `3000` | Port the NestJS server listens on. |
 | `CORS_ALLOWED_ORIGINS` | No | `https://localhost:4321` | Comma-separated list of origins allowed to call this API (CORS). Defaults to the local SPFx dev server; set to the tenant's SharePoint domain(s) in deployed environments. |
+| `PORT` | No | `3000` | Port the NestJS server listens on. |
