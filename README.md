@@ -33,9 +33,14 @@ enterprise-gateway seam) · Server-Sent Events for streaming chat.
 
 ## Getting started
 
-No runnable code yet — this repo is currently architecture + planning
-(see Status above). Once Phase 0 of the build plan lands, this section will
-cover install, environment config, and running the service locally.
+Requires Node 24 (see `.nvmrc`) and npm.
+
+```bash
+npm install
+npm run start:dev   # runs on http://localhost:3000
+npm run test        # unit tests
+npm run lint        # eslint
+```
 
 ## Author
 
