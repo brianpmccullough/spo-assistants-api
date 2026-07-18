@@ -12,9 +12,7 @@ None at this time.
 
 ## Coding
 
-See [docs/code-style.md](./docs/code-style.md) — NestJS/TypeScript code style. Update it in the same PR if you establish a new convention.
-
-See [docs/code-conventions.md](./docs/code-conventions.md) - 
+See [docs/code-conventions.md](./docs/code-conventions.md) — NestJS/TypeScript code style. Update it in the same PR if you establish a new convention.
 
 ## Docs
 

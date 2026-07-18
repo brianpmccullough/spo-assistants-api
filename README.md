@@ -24,7 +24,7 @@ Start with the architecture overview — everything else links from there.
 | [03-contracts.md](./docs/03-contracts.md) | Load-bearing interfaces: resolution API, `/chat`, tools, attachments |
 | [04-extending-the-platform.md](./docs/04-extending-the-platform.md) | Recipes: add an instance / type / tool / page type / MCP exposure |
 | [05-build-plan.md](./docs/plans/05-build-plan.md) | Phased roadmap sequenced by risk retirement |
-| [code-style.md](./docs/code-style.md) | NestJS/TypeScript conventions used in this repo |
+| [code-conventions.md](./docs/code-conventions.md) | NestJS/TypeScript conventions used in this repo |
 
 ## Tech stack
 
