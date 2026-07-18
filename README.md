@@ -25,6 +25,7 @@ Start with the architecture overview — everything else links from there.
 | [04-extending-the-platform.md](./docs/04-extending-the-platform.md) | Recipes: add an instance / type / tool / page type / MCP exposure |
 | [05-build-plan.md](./docs/plans/05-build-plan.md) | Phased roadmap sequenced by risk retirement |
 | [code-conventions.md](./docs/code-conventions.md) | NestJS/TypeScript conventions used in this repo |
+| [env.md](./docs/env.md) | Environment/secret variables |
 
 ## Tech stack
 

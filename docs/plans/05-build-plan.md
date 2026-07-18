@@ -39,7 +39,8 @@ gantt
   `/ping` endpoint that performs a real OBO exchange and returns the user's identity from Graph.
 - [ ] Bare Application Customizer, tenant-deployed to a dev tenant: bottom-right
   launcher that calls `/ping` via `AadHttpClient` and displays the result.
-- [ ] CORS, environment config skeleton, CI pipeline stub.
+- [x] CORS (`CORS_ALLOWED_ORIGINS` env var, defaults to the local SPFx dev server).
+- [ ] Environment config skeleton, CI pipeline stub.
 
 **Exit:** a button on a real SPO page proves the full identity chain
 SPFx → API → OBO → Graph.
