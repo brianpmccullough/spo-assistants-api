@@ -47,14 +47,19 @@ doc in the same PR.
 
 ## File naming
 
-- PascalCase filenames matching the primary export, .NET-style, MUST match the name of the class, type, interface contained within the file.
-  `ChatModule.ts`, `ListRecentFilesTool.ts`, `Attachment.ts`, `ICallable`.
+- Standard NestJS convention: kebab-case + a dot-separated type suffix
+  matching the file's role, per `@nestjs/cli`'s schematics and the official
+  docs/sample apps (`cats.controller.ts`, `cats.service.ts`,
+  `create-cat.dto.ts`). Domain concepts without a built-in Nest suffix follow
+  the same pattern (`find-stale-content.tool.ts`). The class/type/interface
+  inside the file is still PascalCase (`CatsController`,
+  `FindStaleContentTool`).
 - No `Model` suffix on request/response model classes — the bare noun is the
   name (`Attachment`, `ChatRequest`, `ChatResponse`), not `AttachmentModel`.
-- One primary export per file; file name matches the primary export exactly
-  (`FindStaleContentTool` → `FindStaleContentTool.ts`).
+- One primary export per file; file name is the kebab-case form of the
+  primary export plus its type suffix.
 - Test files colocated as `*.spec.ts` next to the file under test
-  (`ChatController.spec.ts`).
+  (`cats.controller.spec.ts`).
 
 ## Errors
 
