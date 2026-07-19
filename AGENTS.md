@@ -8,7 +8,23 @@ NestJS backend for a SharePoint Online AI assistant platform. Companion SPFx cli
 
 ## Non-negotiable rules
 
-None at this time.
+- Every default value (config/env defaults, function parameter defaults,
+  fallback constants, etc.) is defined in exactly one place. Never re-type or
+  copy a default elsewhere — in a test, a mock, a second module, a doc's
+  prose — derive it from that one source instead (import it, instantiate the
+  class that owns it, read the constant). If you catch yourself writing the
+  same literal default in a second spot, that's a signal to refactor, not to
+  proceed. Docs may *state* a default for reference, but code must never
+  duplicate one.
+- Before writing a helper (especially string/data manipulation), search the
+  codebase for something that already does it or is close enough to
+  generalize. Don't reimplement the same or similar logic in multiple spots.
+- When possible, name and shape helpers around what they generically *do*, not the one
+  call site that prompted writing them. A function that splits a delimited
+  string, trims entries, and drops empties is `parseDelimitedList`, not
+  `parseAllowedOrigins` — the narrow name locks it to one caller and invites
+  a near-duplicate the next time similar parsing is needed. Prefer parameters
+  (e.g. a `delimiter` argument) over hardcoding the one case you have today.
 
 ## Coding
 

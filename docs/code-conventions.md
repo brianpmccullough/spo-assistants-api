@@ -18,7 +18,8 @@ doc in the same PR.
   is fine for local/private helpers.
 - Named exports only. No `export default` — keeps refactors and registry wiring (tool/type registration) grep-able.
 - No use of `any`. Prefer a specific type.  If a type cannot be used, use `unknown`.  `any` is ONLY acceptable in APIs or libraries that are outside the control of this code.
-- 
+- No abbreviations in identifiers (variables, functions, classes, files) unless
+  it's a very well-known abbreviation for a coding concept (`Api`, `Http`, `Url`, `Id`) or a typical convention for this NestJS framework. Spell it out otherwise — `configuration` not `config`, `message` not `msg`.
 
 ## NestJS structure
 
