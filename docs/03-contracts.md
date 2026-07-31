@@ -148,7 +148,7 @@ interface Tool {
 }
 
 interface ToolContext {
-  user: UserContext;                 // from validated bearer token
+  user: AuthenticatedUser;           // identity + inbound access token, from the validated bearer token
   oboToken: string;                  // Graph-scoped, user identity
   siteContext: ChatRequestContext;   // the request's context object
   attachments: Attachment[];

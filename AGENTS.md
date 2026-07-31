@@ -37,6 +37,7 @@ See [docs/code-conventions.md](./docs/code-conventions.md) — NestJS/TypeScript
 - Keep the ADR log append-only.  It's OK to change a decision, but keep the original decision logged, followed by the change logged separately.
 - If you're unsure whether a change is "just code" or needs a doc update, treat interface, contract, and architecture-shape changes as needing one.
 - Any environment variable or secret variable (its name and purpose, never its value) must be documented in [docs/env.md](./docs/env.md).  Variables should be listed alphabetically.
+- Reference docs are read by other engineers, not just whoever is in this session. Don't write instructions aimed at the current user (e.g. "from the app registration's Overview page", "as you set up earlier") — state facts that hold for any reader. If a note is genuinely session-specific, say it in chat, don't put it in a doc.
 
 ## Validation
 

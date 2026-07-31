@@ -13,6 +13,15 @@ export const DEFAULTS = {
 };
 
 export class EnvironmentVariables {
+  @IsString()
+  AZURE_AD_API_CLIENT_ID!: string;
+
+  @IsString()
+  AZURE_AD_CLIENT_SECRET!: string;
+
+  @IsString()
+  AZURE_AD_TENANT_ID!: string;
+
   @Type(() => Number)
   @IsInt()
   @Min(1)

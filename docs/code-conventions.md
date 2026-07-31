@@ -28,6 +28,9 @@ doc in the same PR.
   [01-architecture-overview.md §4](./01-architecture-overview.md)). A module
   owns its providers, controllers, and internal types; only what's exported
   from the module's `index.ts` (or explicit public surface) is used by others.
+- `common/` holds small, dependency-free helpers with no home in a specific
+  module (e.g. `Milliseconds`). Not a dumping ground — most code belongs in
+  its owning module.
 - Constructor-based dependency injection only. No property injection, no
   service locator patterns.
 - Environment seams (`LlmClient`, `DocumentOperationsService`) are
@@ -45,6 +48,10 @@ doc in the same PR.
   logic in controllers.
 - Guards own bearer-token validation and user-context extraction
   (`auth/`); don't re-check auth inside services.
+- `MicrosoftBearerTokenGuard` is registered globally (`APP_GUARD` in
+  `AuthModule`) — routes require a valid bearer token by default. Opt a route
+  out with `@Unauthenticated()` (`auth/unauthenticated.decorator.ts`); don't add per-route
+  `@UseGuards(MicrosoftBearerTokenGuard)`, it's redundant.
 
 ## File naming
 
@@ -63,7 +70,6 @@ doc in the same PR.
   (`cats.controller.spec.ts`).
 
 ## Errors
-
 
 ## Security
 

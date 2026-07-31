@@ -35,10 +35,11 @@ gantt
   scaffolding, own `.nvmrc` + lockfile + CI; defines its own model copies per doc 03.
 - [ ] EntraID app registrations: API app + SPFx consumer; `webApiPermissionRequests`
   in the SPFx package; admin consent flow exercised.
-- [ ] NestJS service in Docker: bearer validation middleware, user context extraction,
-  `/ping` endpoint that performs a real OBO exchange and returns the user's identity from Graph.
+- [x] Bearer validation guard + user context extraction (`auth/`), `GraphClient`
+  OBO exchange (`graph/`), `/me` endpoint returning the user's identity from Graph.
+  Still needed: containerize in Docker.
 - [ ] Bare Application Customizer, tenant-deployed to a dev tenant: bottom-right
-  launcher that calls `/ping` via `AadHttpClient` and displays the result.
+  launcher that calls `/me` via `AadHttpClient` and displays the result.
 - [x] CORS (`CORS_ALLOWED_ORIGINS` env var, defaults to the local SPFx dev server).
 - [x] Environment config skeleton: `ConfigurationService` (typed `settings`/`secrets`
   facade over `@nestjs/config`), env vars validated at boot via `class-validator`/

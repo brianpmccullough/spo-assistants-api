@@ -23,6 +23,22 @@ async function createConfigurationService(
 }
 
 describe('ConfigurationService', () => {
+  it('exposes the configured Azure AD API client ID', async () => {
+    const configuration = await createConfigurationService({
+      AZURE_AD_API_CLIENT_ID: 'test-client-id',
+    });
+
+    expect(configuration.settings.azureAdApiClientId).toBe('test-client-id');
+  });
+
+  it('exposes the configured Azure AD tenant ID', async () => {
+    const configuration = await createConfigurationService({
+      AZURE_AD_TENANT_ID: 'test-tenant-id',
+    });
+
+    expect(configuration.settings.azureAdTenantId).toBe('test-tenant-id');
+  });
+
   it('exposes the configured port', async () => {
     const configuration = await createConfigurationService({ PORT: 4000 });
 
@@ -40,9 +56,11 @@ describe('ConfigurationService', () => {
     ]);
   });
 
-  it('exposes an empty secrets object when none are configured', async () => {
-    const configuration = await createConfigurationService({});
+  it('exposes the configured Azure AD client secret', async () => {
+    const configuration = await createConfigurationService({
+      AZURE_AD_CLIENT_SECRET: 'test-client-secret',
+    });
 
-    expect(configuration.secrets).toEqual({});
+    expect(configuration.secrets.azureAdClientSecret).toBe('test-client-secret');
   });
 });

@@ -4,13 +4,15 @@ import { ConfigService } from '@nestjs/config';
 import type { EnvironmentVariables } from './environment-variables.schema';
 
 export interface Settings {
+  readonly azureAdApiClientId: string;
+  readonly azureAdTenantId: string;
   readonly port: number;
   readonly corsAllowedOrigins: string[];
 }
 
-// No secrets defined yet. Add fields here as they're introduced, alongside
-// an entry in docs/env.md (name and purpose only, never the value).
-export type Secrets = Record<string, never>;
+export interface Secrets {
+  readonly azureAdClientSecret: string;
+}
 
 @Injectable()
 export class ConfigurationService {
@@ -19,12 +21,16 @@ export class ConfigurationService {
 
   constructor(configService: ConfigService<EnvironmentVariables, true>) {
     this.settings = {
+      azureAdApiClientId: configService.get('AZURE_AD_API_CLIENT_ID', { infer: true }),
+      azureAdTenantId: configService.get('AZURE_AD_TENANT_ID', { infer: true }),
       port: configService.get('PORT', { infer: true }),
       corsAllowedOrigins: ConfigurationService.parseDelimitedList(
         configService.get('CORS_ALLOWED_ORIGINS', { infer: true }),
       ),
     };
-    this.secrets = {};
+    this.secrets = {
+      azureAdClientSecret: configService.get('AZURE_AD_CLIENT_SECRET', { infer: true }),
+    };
   }
 
   private static parseDelimitedList(raw: string, delimiter = ','): string[] {
