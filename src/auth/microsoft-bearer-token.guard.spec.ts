@@ -13,7 +13,7 @@ const TENANT_ID = 'test-tenant-id';
 const CLIENT_ID = 'test-client-id';
 const KEY_ID = 'test-key-id';
 const AUDIENCE = `api://${CLIENT_ID}`;
-const ISSUER = `https://login.microsoftonline.com/${TENANT_ID}/v2.0`;
+const ISSUER = `https://sts.windows.net/${TENANT_ID}/`;
 
 class TestController {
   handler(this: void): void {}

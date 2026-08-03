@@ -1,4 +1,10 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { decode, verify, type JwtPayload } from 'jsonwebtoken';
 
@@ -10,6 +16,7 @@ import { ConfigurationService } from '../configuration/configuration.service';
 
 @Injectable()
 export class MicrosoftBearerTokenGuard implements CanActivate {
+  private readonly logger = new Logger(MicrosoftBearerTokenGuard.name);
   private readonly jwksKeyResolver: JwksKeyResolver;
   private readonly audience: string;
   private readonly issuer: string;
@@ -20,7 +27,10 @@ export class MicrosoftBearerTokenGuard implements CanActivate {
   ) {
     const { azureAdApiClientId, azureAdTenantId } = configurationService.settings;
     this.audience = `api://${azureAdApiClientId}`;
-    this.issuer = `https://login.microsoftonline.com/${azureAdTenantId}/v2.0`;
+    // The app registration issues v1 access tokens (api.requestedAccessTokenVersion is
+    // unset), so tokens carry the v1 issuer even though the JWKS endpoint is shared
+    // between v1 and v2 tokens.
+    this.issuer = `https://sts.windows.net/${azureAdTenantId}/`;
     this.jwksKeyResolver = new JwksKeyResolver(
       `https://login.microsoftonline.com/${azureAdTenantId}/discovery/v2.0/keys`,
     );
@@ -69,7 +79,8 @@ export class MicrosoftBearerTokenGuard implements CanActivate {
         throw new UnauthorizedException('Invalid bearer token');
       }
       return payload;
-    } catch {
+    } catch (error) {
+      this.logger.debug(`Bearer token verification failed: ${(error as Error).message}`);
       throw new UnauthorizedException('Invalid bearer token');
     }
   }
