@@ -30,7 +30,7 @@ gantt
 
 - [x] `spo-assistants-api` repo scaffolded per ADR-009 (incl. `/docs` — this set):
   `.nvmrc` + lockfile, NestJS CLI baseline, strict TypeScript, ESLint + Prettier.
-- [ ] CI pipeline for `spo-assistants-api`.
+- [x] CI pipeline for `spo-assistants-api`.
 - [x] `spo-assistants-spfx` repo: [`spo-assistants-spfx`](https://github.com/brianpmccullough/spo-assistants-spfx)
   scaffolding, own lockfile; defines its own model copies per doc 03. Still needed: CI.
 - [x] EntraID app registrations: API app + SPFx consumer; `webApiPermissionRequests`
