@@ -31,14 +31,14 @@ gantt
 - [x] `spo-assistants-api` repo scaffolded per ADR-009 (incl. `/docs` — this set):
   `.nvmrc` + lockfile, NestJS CLI baseline, strict TypeScript, ESLint + Prettier.
 - [ ] CI pipeline for `spo-assistants-api`.
-- [ ] `spo-assistants-spfx` repo: [`spo-assistants-spfx`](https://github.com/brianpmccullough/spo-assistants-spfx)
-  scaffolding, own `.nvmrc` + lockfile + CI; defines its own model copies per doc 03.
-- [ ] EntraID app registrations: API app + SPFx consumer; `webApiPermissionRequests`
+- [x] `spo-assistants-spfx` repo: [`spo-assistants-spfx`](https://github.com/brianpmccullough/spo-assistants-spfx)
+  scaffolding, own lockfile; defines its own model copies per doc 03. Still needed: CI.
+- [x] EntraID app registrations: API app + SPFx consumer; `webApiPermissionRequests`
   in the SPFx package; admin consent flow exercised.
 - [x] Bearer validation guard + user context extraction (`auth/`), `GraphClient`
   OBO exchange (`graph/`), `/me` endpoint returning the user's identity from Graph.
   Still needed: containerize in Docker.
-- [ ] Bare Application Customizer, tenant-deployed to a dev tenant: bottom-right
+- [x] Bare Application Customizer, tenant-deployed to a dev tenant: bottom-right
   launcher that calls `/me` via `AadHttpClient` and displays the result.
 - [x] CORS (`CORS_ALLOWED_ORIGINS` env var, defaults to the local SPFx dev server).
 - [x] Environment config skeleton: `ConfigurationService` (typed `settings`/`secrets`
