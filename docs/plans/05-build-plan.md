@@ -32,19 +32,21 @@ gantt
   `.nvmrc` + lockfile, NestJS CLI baseline, strict TypeScript, ESLint + Prettier.
 - [x] CI pipeline for `spo-assistants-api`.
 - [x] `spo-assistants-spfx` repo: [`spo-assistants-spfx`](https://github.com/brianpmccullough/spo-assistants-spfx)
-  scaffolding, own lockfile; defines its own model copies per doc 03. Still needed: CI.
+  scaffolding, own lockfile; defines its own model copies per doc 03. CI builds,
+  version-checks, and publishes the `.sppkg` to GitHub Releases on push to main.
 - [x] EntraID app registrations: API app + SPFx consumer; `webApiPermissionRequests`
   in the SPFx package; admin consent flow exercised.
 - [x] Bearer validation guard + user context extraction (`auth/`), `GraphClient`
   OBO exchange (`graph/`), `/me` endpoint returning the user's identity from Graph.
-  Still needed: containerize in Docker.
+  Containerized (`Dockerfile`); CI builds and publishes the image to GHCR on push
+  to main. Deployed to Azure Container Apps (`rg-spo-assistants`); `/me` verified
+  live end-to-end against a real SPO page.
 - [x] Bare Application Customizer, tenant-deployed to a dev tenant: bottom-right
   launcher that calls `/me` via `AadHttpClient` and displays the result.
 - [x] CORS (`CORS_ALLOWED_ORIGINS` env var, defaults to the local SPFx dev server).
 - [x] Environment config skeleton: `ConfigurationService` (typed `settings`/`secrets`
   facade over `@nestjs/config`), env vars validated at boot via `class-validator`/
   `class-transformer` (fails fast on invalid config).
-- [ ] CI pipeline stub.
 
 **Exit:** a button on a real SPO page proves the full identity chain
 SPFx → API → OBO → Graph.
