@@ -241,3 +241,64 @@ revisit if the model surface or the number of consumers grows.)
   parallel doc set, nothing replicated.
 - Revisit trigger: a second API consumer, separate owning teams, or access
   boundaries — none true today.
+
+---
+
+## ADR-010: Azure Container Apps + GHCR for hosting; manual Cloud Shell setup
+
+**Status:** Accepted
+
+**Context.** This is a sample project: real running infrastructure is valuable
+for proving the auth chain end-to-end, but must cost effectively nothing.
+AWS App Runner (the original candidate, from prior project experience) closed
+to new customers April 30, 2026 and moved to maintenance mode, ruling it out.
+A registry is also required to host the API's Docker image; Azure Container
+Registry's cheapest tier runs ~$5/mo even idle, which is real money for a
+sample project's registry alone.
+
+**Decision.**
+- **Hosting:** Azure Container Apps, Consumption plan. Chosen for its ongoing
+  (not trial) free monthly allowance — 180,000 vCPU-seconds, 360,000
+  GiB-seconds, 2,000,000 requests — combined with scale-to-zero, which is the
+  *default* behavior (`minReplicas` defaults to 0; no explicit config
+  required) when ingress is enabled and no custom scale rule is defined.
+  Confirmed empirically post-deploy: replica count drops to 0 after ~5 minutes
+  idle, cold-starts (`Activating` → `Running`) on the next request.
+- **Registry:** GitHub Container Registry (`ghcr.io`), package visibility set
+  to public. Free, and CI already authenticates to it with the repo's own
+  `GITHUB_TOKEN` (no PAT to provision or rotate) to push on every merge to
+  main — see `docker-publish.yml`. Public visibility adds no exposure beyond
+  what the already-public source repo provides, and removes the need for any
+  registry credential at deploy time.
+- **Deployment mechanism:** Azure Cloud Shell (browser-based, pre-authenticated
+  `az` CLI), not the Portal's guided Container App creation wizard. The
+  wizard's "Registry" field is a closed dropdown of registries already
+  connected to the subscription — typing `ghcr.io` returns "No results," with
+  no free-text path to a non-ACR registry. Cloud Shell avoids both that dead
+  end and a local CLI install (previously abandoned as too slow to set up on
+  this machine).
+- **Tenant split:** the Azure subscription hosting these resources is a
+  separate tenant from the SharePoint/M365 dev tenant (the latter cannot
+  create Azure resources at all). This is fine because hosting tenant and
+  token-issuing tenant are independent axes — `AZURE_AD_TENANT_ID` and the
+  Entra app registrations still point at the SharePoint tenant regardless of
+  which subscription pays for compute.
+
+**Consequences.**
+- The full working command sequence — provider registration, environment
+  creation, container app creation, env var/secret wiring, and the
+  crash-loop-from-missing-env-vars symptom this project actually hit — is
+  recorded in
+  [`azure-container-services-setup.md`](./azure-container-services-setup.md),
+  since none of it is scripted or repeatable via `az containerapp create`
+  alone.
+- **Deployment is currently manual, not part of CI/CD.** `docker-publish.yml`
+  publishes a new image to GHCR on every push to main, but nothing redeploys
+  the running Container App to pick it up — a manual `az containerapp update`
+  (or equivalent) is required today. Automating this is open (tracked as a
+  TODO in `azure-container-services-setup.md`); it wasn't done initially
+  because the Portal-UI dead end consumed the setup effort this ADR is
+  actually about.
+- Revisit trigger: real (non-sample) traffic that risks exceeding the
+  Consumption plan's free allowance, or a requirement that rules out
+  GHCR's public visibility.

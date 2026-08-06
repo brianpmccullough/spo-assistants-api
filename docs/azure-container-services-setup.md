@@ -86,10 +86,13 @@ az containerapp create \
 - `--ingress external` is required since the SPFx Application Customizer calls
   this API from the browser.
 - `--min-replicas` was **not** passed, so the created app's scale config shows
-  `"minReplicas": null` rather than an explicit `0`. This has not been
-  confirmed to behave as scale-to-zero — verify (`az containerapp show ...
-  --query properties.template.scale`) or set explicitly with
-  `az containerapp update --min-replicas 0` before relying on it for cost.
+  `"minReplicas": null`. Confirmed against [Microsoft's scaling
+  docs](https://learn.microsoft.com/en-us/azure/container-apps/scale-app) that
+  `null` here just means "using the default," and the default *is* `0` — not
+  `1`. With ingress enabled and no custom scale rule, Container Apps applies
+  its default HTTP scale rule (min 0 / max 10 replicas) and scales down to
+  zero 300 seconds (5 minutes) after the last request. No further action
+  needed for scale-to-zero to actually apply here.
 - No registry credentials needed — the GHCR package is public.
 - **This step alone is not enough to get a working app** — see the next
   section. `az containerapp create` sets no environment variables, and this
@@ -162,9 +165,9 @@ sample project:
 - Log Analytics workspace — 5 GB/day ingestion free, permanently (not a
   trial); a sample project's console logs won't approach that.
 - Container Apps Consumption plan — 180,000 vCPU-seconds, 360,000 GiB-seconds,
-  and 2,000,000 requests free per month. Idle time only costs nothing if
-  scale-to-zero is actually in effect — see the `--min-replicas` note above,
-  since that was never confirmed for this deployment.
+  and 2,000,000 requests free per month. Scale-to-zero is confirmed active for
+  this deployment (see the `--min-replicas` note above) — idle time costs
+  nothing after the 5-minute cool down.
 
 This is also why Azure Container Apps was chosen over AWS App Runner (which
 moved to maintenance mode, no new customers as of April 2026) and over
