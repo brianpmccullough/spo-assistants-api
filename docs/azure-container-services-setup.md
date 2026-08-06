@@ -162,7 +162,8 @@ curl -s -o /dev/null -w "HTTP %{http_code}\n" "https://<fqdn>/me"
 
 The SPFx Application Customizer's `apiBaseUrl` property points at this FQDN
 for a real deployed test instead of `https://localhost:3000` — see
-`scripts/script.ps1`'s `-ApiBaseUrl` parameter in `spo-assistants-spfx`.
+`scripts/deploy.ps1`'s `-ApiBaseUrl` parameter in `spo-assistants-spfx`, which
+carries this FQDN as its default and writes it into each site's custom action.
 
 ## Cost
 
