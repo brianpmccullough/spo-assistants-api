@@ -61,6 +61,12 @@ with working code. Everything after this phase is repetition of a proven shape.
 - [ ] Minimal orchestrator: real LLM loop (prompt → tool schemas → dispatch → continue), one tool.
 - [ ] `LlmClient` token + Azure OpenAI implementation.
 - [ ] `/chat` SSE endpoint; chat surface rendering deltas + tool-activity events.
+  Groundwork exists but is not this: `POST /assistants/site-assistant/chat`
+  (API) is a plain JSON echo, no SSE, no orchestrator — and
+  `components/chat/` (SPFx) is a real, code-split, Fluent-based chat surface
+  wired to that stub. Proves the plumbing (SPFx → API round trip, UI
+  segmentation, bundle-splitting) but the actual contract from
+  [03-contracts.md §3](./03-contracts.md) is still unbuilt.
 - [ ] **Spike within this phase:** `AadHttpClient` vs. raw `fetch` + manually acquired
   token for SSE consumption (AadHttpClient does not expose response streams cleanly).
   Decision recorded as a note on ADR-008 or a new ADR.

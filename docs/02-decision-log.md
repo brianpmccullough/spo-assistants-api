@@ -196,6 +196,15 @@ block the page. User can scroll/read/interact while chatting.
   SPO's native corner UI (Copilot/feedback buttons). Contained in one component.
 - v1 navigation behavior: chat dismisses on navigation (see ADR-004).
 
+**Open question (to revisit):** now that a real chat surface is built
+(`components/chat/`), whether a custom-built anchored card is worth the
+ongoing maintenance versus Fluent's `<Panel>` (e.g. `type={PanelType.custom}`
+with `customWidth`, which can be made non-blocking-ish via `isBlocking={false}`
+and `isLightDismiss`). Deliberately unresolved — the reasoning above (avoid
+modal/focus-trap behavior) still holds, but hasn't been re-checked against
+what `<Panel>`'s newer configuration options actually allow. Not re-litigating
+now; revisit before this leaves prototype status.
+
 ---
 
 ## ADR-009: Separate repositories; server-owned contracts with a published-types path
