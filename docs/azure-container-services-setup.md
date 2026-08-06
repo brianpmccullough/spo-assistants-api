@@ -9,7 +9,15 @@ of registries already connected to the subscription — typing a hostname like
 instead. This doc records the commands that actually worked, so the setup can be
 reproduced or torn down without re-deriving them.
 
-TODO: integrate the setup as part of CICD
+**CI/CD status:** redeploying a new image on every push to `main` is now
+automated — see `docker-publish.yml`'s `Azure login (OIDC)` and `Deploy to
+Azure Container Apps` steps, authenticated via the
+`github-actions-spo-assistants-deploy` app registration (federated
+credential, no stored secret; **Container Apps Contributor** scoped to
+`rg-spo-assistants`). What's still manual, one-time setup (and remains
+below) is everything up through *creating* the environment/container app and
+its initial env vars/secrets — CI only updates an already-existing app's
+image, it doesn't provision one.
 
 Env var names below match [`env.md`](./env.md) — see that doc for what each one
 is for and how to obtain a value. Actual secret values are never recorded here.

@@ -292,13 +292,13 @@ sample project's registry alone.
   [`azure-container-services-setup.md`](./azure-container-services-setup.md),
   since none of it is scripted or repeatable via `az containerapp create`
   alone.
-- **Deployment is currently manual, not part of CI/CD.** `docker-publish.yml`
-  publishes a new image to GHCR on every push to main, but nothing redeploys
-  the running Container App to pick it up — a manual `az containerapp update`
-  (or equivalent) is required today. Automating this is open (tracked as a
-  TODO in `azure-container-services-setup.md`); it wasn't done initially
-  because the Portal-UI dead end consumed the setup effort this ADR is
-  actually about.
+- **Deployment is now automated.** `docker-publish.yml` builds, pushes to
+  GHCR, then (push-only) deploys the exact just-published image — via a
+  dedicated `github-actions-spo-assistants-deploy` app registration,
+  OIDC federated credential (`repo:.../spo-assistants-api:ref:refs/heads/main`,
+  no stored secret), and a **Container Apps Contributor** role assignment
+  scoped to `rg-spo-assistants` only. `az containerapp update` pins the
+  deploy to the run's own `sha-<shortsha>` tag, not floating `latest`.
 - Revisit trigger: real (non-sample) traffic that risks exceeding the
   Consumption plan's free allowance, or a requirement that rules out
   GHCR's public visibility.
