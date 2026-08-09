@@ -23,26 +23,30 @@ doc in the same PR.
 
 ## NestJS structure
 
-- One module per top-level directory under `src/` (`assistants/`, `orchestrator/`,
-  `tools/`, `graph/`, `llm/`, `documents/`, `auth/` — see
-  [01-architecture-overview.md §4](./01-architecture-overview.md)). A module
-  owns its providers, controllers, and internal types; only what's exported
-  from the module's `index.ts` (or explicit public surface) is used by others.
+- One module per top-level directory under `src/`. A module owns its providers,
+  controllers, and internal types; only what's exported from the module's
+  `index.ts` (or explicit public surface) is used by others. Existing modules:
+  `auth/`, `graph/`, `configuration/`, `users/`, `assistants/`, `common/`. The
+  module set beyond these is not predetermined — an earlier doc listed
+  `orchestrator/`, `tools/`, `llm/`, and `documents/` as a planned layout, but
+  none exist and that decomposition is not settled.
 - `common/` holds small, dependency-free helpers with no home in a specific
   module (e.g. `Milliseconds`). Not a dumping ground — most code belongs in
   its owning module.
 - Constructor-based dependency injection only. No property injection, no
   service locator patterns.
-- Environment seams (`LlmClient`, `DocumentOperationsService`) are
-  `InjectionToken`s with interfaces defined in the consuming module, bound to
-  concrete implementations in that module's provider config (ADR-006). A
-  feature module never imports a concrete implementation directly — only the
-  token and its interface.
-- Tools are plain objects implementing `Tool` (see
-  [03-contracts.md §5](./03-contracts.md)), registered into `ToolRegistry` —
-  not NestJS providers themselves unless a tool genuinely needs DI (e.g. a
-  tool that calls `LlmClient` internally), in which case inject via a small
-  factory, not a full `@Injectable()` service masquerading as a tool.
+- Where an external environment-specific dependency is abstracted, do it with an
+  `InjectionToken` plus an interface defined in the consuming module, bound to a
+  concrete implementation in that module's provider config; a feature module then
+  never imports a concrete implementation directly. This is a style rule for how
+  to build such a seam, not a standing decision that any particular seam exists.
+  Which dependencies get one — notably the LLM client, where an SDK that owns the
+  call loop may make a hand-rolled seam counterproductive — is an open question.
+- There is no tool convention yet. An earlier doc specified plain objects
+  implementing a `Tool` interface registered into a `ToolRegistry`, but no tool,
+  interface, or registry was ever written, and whether tools are defined by hand
+  or by an agent framework is undecided. Settle that first, then record the
+  convention here — don't infer one from the deleted doc.
 - Controllers stay thin: validate/transform input (model class + `class-validator`),
   delegate to a service, map the result to an HTTP/SSE response. No business
   logic in controllers.
@@ -90,7 +94,7 @@ doc in the same PR.
 
 - `*.spec.ts` unit tests colocated with source; NestJS `Test.createTestingModule`
   for anything exercising DI.
-- Tools are tested as pure functions against a constructed `ToolContext` —
-  no need to boot a testing module for tool-only tests.
-- Mock at the seam boundaries (`LlmClient`, `DocumentOperationsService`,
-  Graph client) — never mock the module under test itself.
+- Mock at the boundary to an external service (Microsoft Graph, the LLM
+  provider) — never mock the module under test itself.
+- Prefer testing units that need no DI as plain functions, without booting a
+  testing module.

@@ -28,7 +28,9 @@ gantt
 
 **Retires:** auth/tenant plumbing risk — the pure-toil work that blocks everything.
 
-- [x] `spo-assistants-api` repo scaffolded per ADR-009 (incl. `/docs` — this set):
+- [x] `spo-assistants-api` repo scaffolded as its own repository separate from the
+  SPFx client — each with its own toolchain, lockfile, `.nvmrc`, and CI, since the
+  SPFx build chain does not coexist well in a workspace (incl. `/docs`):
   `.nvmrc` + lockfile, NestJS CLI baseline, strict TypeScript, ESLint + Prettier.
 - [x] CI pipeline for `spo-assistants-api`.
 - [x] `spo-assistants-spfx` repo: [`spo-assistants-spfx`](https://github.com/brianpmccullough/spo-assistants-spfx)
@@ -56,17 +58,22 @@ SPFx → API → OBO → Graph.
 **Retires:** streaming-through-infrastructure risk; validates the tool contract
 with working code. Everything after this phase is repetition of a proven shape.
 
-- [ ] `ToolRegistry` + `Tool`/`ToolContext` interfaces (per [03-contracts.md §5](./03-contracts.md)).
+- [ ] Decide how tools are defined and dispatched (hand-rolled registry vs. an
+  agent framework such as the OpenAI Agents SDK), then build it. The previous
+  `ToolRegistry` + `Tool`/`ToolContext` design was never implemented and its
+  spec doc was deleted — this is an open decision, not a build task.
 - [ ] `GraphClient` (OBO + first typed wrappers) and `list_recent_files` tool.
 - [ ] Minimal orchestrator: real LLM loop (prompt → tool schemas → dispatch → continue), one tool.
 - [ ] `LlmClient` token + Azure OpenAI implementation.
-- [ ] `/chat` SSE endpoint; chat surface rendering deltas + tool-activity events.
-  Groundwork exists but is not this: `POST /assistants/site-assistant/chat`
-  (API) is a plain JSON echo, no SSE, no orchestrator — and
-  `components/chat/` (SPFx) is a real, code-split, Fluent-based chat surface
-  wired to that stub. Proves the plumbing (SPFx → API round trip, UI
-  segmentation, bundle-splitting) but the actual contract from
-  [03-contracts.md §3](./03-contracts.md) is still unbuilt.
+- [ ] Working `/chat` endpoint. **Streaming is deferred** — for now the client
+  posts the full conversation history each request and gets a complete response
+  back; SSE is a later transport change, not a prerequisite. Groundwork exists
+  but is not this: `POST /assistants/site-assistant/chat` (API) is a plain JSON
+  echo with no LLM behind it, and `components/chat/` (SPFx) is a real,
+  code-split, Fluent-based chat surface wired to that stub. Proves the plumbing
+  (SPFx → API round trip, UI segmentation, bundle-splitting) only. No
+  request/response contract is currently specified anywhere — define it
+  alongside the implementation.
 - [ ] **Spike within this phase:** `AadHttpClient` vs. raw `fetch` + manually acquired
   token for SSE consumption (AadHttpClient does not expose response streams cleanly).
   Decision recorded as a note on ADR-008 or a new ADR.
@@ -120,8 +127,10 @@ prompts + instances. If any track demands orchestrator changes, stop and ADR it.
   **Product decision due here:** refine = in-chat searches vs. mutating the OOB
   results page. Recommend starting in-chat (no coupling to OOB page internals).
 
-**Exit:** all four launch assistants live on pilot sites; the §6 worked-example
-table in [04-extending-the-platform.md](./04-extending-the-platform.md) validated in practice.
+**Exit:** all four launch assistants live on pilot sites, with the platform thesis
+validated in practice — adding an assistant that reuses existing capabilities should
+cost a prompt, a configuration record, and no client change. If it costs more than
+that, the extension model is wrong and needs an ADR.
 
 ## Phase 5 — Hardening for 100K *(~2–3 wks + ongoing)*
 

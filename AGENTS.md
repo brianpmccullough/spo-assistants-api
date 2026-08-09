@@ -1,6 +1,8 @@
 # AGENTS.md
 
-Guidance for AI coding agents working in this repo. Read [docs/01-architecture-overview.md](./docs/01-architecture-overview.md) first — this file is a distillation, not a replacement.
+Guidance for AI coding agents working in this repo. Read [docs/02-decision-log.md](./docs/02-decision-log.md) and [docs/plans/05-build-plan.md](./docs/plans/05-build-plan.md) first for current state.
+
+There is no architecture-overview or contracts doc. The originals were written before the code existed and described a system that was never built; they were removed on 2026-08-09. Do not reconstruct that architecture from memory, from the SPFx repo, or from git history and treat it as decided — the orchestrator shape, the LLM seam, the tool contract, and the assistant type/instance/resolution model are all genuinely open. Ask rather than assume.
 
 ## What this is
 
@@ -34,7 +36,7 @@ See [docs/code-conventions.md](./docs/code-conventions.md) — NestJS/TypeScript
 
 - All documentation in .md format and stored in /docs.  Any planning documents, which could drift from current state of code, belong in /docs/plans.  Any reference documents that should remain accurate with current state of code, belong in /docs. Use subfolders by feature name.
 - Update reference docs in the same PR as the code that changes them — not after.
-- Keep the ADR log append-only.  It's OK to change a decision, but keep the original decision logged, followed by the change logged separately.
+- Keep the ADR log append-only.  It's OK to change a decision, but keep the original decision logged, followed by the change logged separately. (One exception already taken: on 2026-08-09 the ADRs covering never-implemented work were deleted outright rather than marked superseded, leaving gaps in the numbering. Numbers are not reused.)
 - If you're unsure whether a change is "just code" or needs a doc update, treat interface, contract, and architecture-shape changes as needing one.
 - Any environment variable or secret variable (its name and purpose, never its value) must be documented in [docs/env.md](./docs/env.md).  Variables should be listed alphabetically.
 - Reference docs are read by other engineers, not just whoever is in this session. Don't write instructions aimed at the current user (e.g. "from the app registration's Overview page", "as you set up earlier") — state facts that hold for any reader. If a note is genuinely session-specific, say it in chat, don't put it in a doc.
