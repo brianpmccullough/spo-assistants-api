@@ -4,6 +4,9 @@ const REQUIRED_VARIABLES = {
   AZURE_AD_API_CLIENT_ID: 'test-client-id',
   AZURE_AD_CLIENT_SECRET: 'test-client-secret',
   AZURE_AD_TENANT_ID: 'test-tenant-id',
+  AZURE_OPENAI_API_KEY: 'test-openai-key',
+  AZURE_OPENAI_DEPLOYMENT: 'test-deployment',
+  AZURE_OPENAI_ENDPOINT: 'https://test-resource.openai.azure.com',
 };
 
 describe('validate', () => {
@@ -12,6 +15,7 @@ describe('validate', () => {
 
     expect(environmentVariables.PORT).toBe(DEFAULTS.PORT);
     expect(environmentVariables.CORS_ALLOWED_ORIGINS).toBe(DEFAULTS.CORS_ALLOWED_ORIGINS);
+    expect(environmentVariables.AZURE_OPENAI_API_VERSION).toBe(DEFAULTS.AZURE_OPENAI_API_VERSION);
   });
 
   it('coerces PORT to a number', () => {

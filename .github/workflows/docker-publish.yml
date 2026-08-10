@@ -60,10 +60,74 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # Fail before touching the Container App rather than setting an empty value:
+      # ConfigurationService validates at boot, so an empty variable crash-loops the
+      # revision instead of erroring here where the cause is obvious.
+      - name: Check deployment configuration is present
+        if: github.event_name == 'push'
+        env:
+          AZURE_AD_API_CLIENT_ID: ${{ vars.AZURE_AD_API_CLIENT_ID }}
+          AZURE_AD_TENANT_ID: ${{ vars.AZURE_AD_TENANT_ID }}
+          AZURE_OPENAI_DEPLOYMENT: ${{ vars.AZURE_OPENAI_DEPLOYMENT }}
+          AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
+          CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
+          AZURE_AD_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          missing=()
+          for name in AZURE_AD_API_CLIENT_ID AZURE_AD_TENANT_ID AZURE_OPENAI_DEPLOYMENT \
+                      AZURE_OPENAI_ENDPOINT CORS_ALLOWED_ORIGINS \
+                      AZURE_AD_CLIENT_SECRET AZURE_OPENAI_API_KEY; do
+            [[ -n "${!name}" ]] || missing+=("$name")
+          done
+          if (( ${#missing[@]} )); then
+            echo "Missing repository variables/secrets: ${missing[*]}" >&2
+            echo "See docs/env.md and docs/azure-container-services-setup.md." >&2
+            exit 1
+          fi
+
+      # Secrets go into the Container Apps secret store and are referenced by the env
+      # vars below as `secretref:`, so their values never appear in the app's plain
+      # configuration. `az containerapp update` has no --secrets, so this is a
+      # separate call.
+      - name: Set Container App secrets
+        if: github.event_name == 'push'
+        env:
+          AZURE_AD_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+        run: |
+          set -euo pipefail
+          az containerapp secret set \
+            --name container-app-spo-assistants \
+            --resource-group rg-spo-assistants \
+            --secrets \
+              azure-ad-client-secret="$AZURE_AD_CLIENT_SECRET" \
+              azure-openai-api-key="$AZURE_OPENAI_API_KEY"
+
+      # Image and environment go in one call so the deploy produces a single revision
+      # whose config and code match. `--set-env-vars` adds/updates only the named
+      # variables; anything else already on the app is left alone.
       - name: Deploy to Azure Container Apps
         if: github.event_name == 'push'
+        env:
+          AZURE_AD_API_CLIENT_ID: ${{ vars.AZURE_AD_API_CLIENT_ID }}
+          AZURE_AD_TENANT_ID: ${{ vars.AZURE_AD_TENANT_ID }}
+          AZURE_OPENAI_DEPLOYMENT: ${{ vars.AZURE_OPENAI_DEPLOYMENT }}
+          AZURE_OPENAI_ENDPOINT: ${{ vars.AZURE_OPENAI_ENDPOINT }}
+          CORS_ALLOWED_ORIGINS: ${{ vars.CORS_ALLOWED_ORIGINS }}
         run: |
+          set -euo pipefail
           az containerapp update \
             --name container-app-spo-assistants \
             --resource-group rg-spo-assistants \
-            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA:0:7}
+            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:sha-${GITHUB_SHA:0:7} \
+            --set-env-vars \
+              AZURE_AD_API_CLIENT_ID="$AZURE_AD_API_CLIENT_ID" \
+              AZURE_AD_TENANT_ID="$AZURE_AD_TENANT_ID" \
+              AZURE_AD_CLIENT_SECRET=secretref:azure-ad-client-secret \
+              AZURE_OPENAI_API_KEY=secretref:azure-openai-api-key \
+              AZURE_OPENAI_DEPLOYMENT="$AZURE_OPENAI_DEPLOYMENT" \
+              AZURE_OPENAI_ENDPOINT="$AZURE_OPENAI_ENDPOINT" \
+              CORS_ALLOWED_ORIGINS="$CORS_ALLOWED_ORIGINS" \
+              OPENAI_AGENTS_DISABLE_TRACING=1

@@ -1,29 +1,53 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
+import { ChatRequest } from './chat-request';
+import { ChatRole } from './chat-role';
 import { SiteAssistantController } from './site-assistant.controller';
+import { SiteAssistantService } from './site-assistant.service';
 
 describe('SiteAssistantController', () => {
   let controller: SiteAssistantController;
+  let service: { chat: jest.Mock; getConfiguration: jest.Mock };
 
   beforeEach(async () => {
+    service = {
+      chat: jest.fn(),
+      getConfiguration: jest.fn(),
+    };
+
     const app: TestingModule = await Test.createTestingModule({
       controllers: [SiteAssistantController],
+      providers: [{ provide: SiteAssistantService, useValue: service }],
     }).compile();
 
     controller = app.get<SiteAssistantController>(SiteAssistantController);
   });
 
+  describe('getConfiguration', () => {
+    it('returns the assistant configuration from the service', () => {
+      const configuration = {
+        assistantId: 'site-assistant',
+        greeting: 'Ask me about this site.',
+        starterPrompts: ['What can you help me with?'],
+      };
+      service.getConfiguration.mockReturnValue(configuration);
+
+      expect(controller.getConfiguration()).toBe(configuration);
+    });
+  });
+
   describe('chat', () => {
-    it('echoes the request body back with the server date/time', () => {
-      const before = Date.now();
+    it('delegates to the service and returns its response', async () => {
+      const request = new ChatRequest();
+      request.messages = [{ role: ChatRole.User, content: 'hello' }];
+      const response = {
+        chatId: 'chat-1',
+        message: { id: 'message-1', role: ChatRole.Assistant, content: 'hi' },
+      };
+      service.chat.mockResolvedValue(response);
 
-      const result = controller.chat({ message: 'hello' });
-
-      expect(result.message).toBe('hello');
-      expect(typeof result.serverDateTime).toBe('string');
-      const parsed = new Date(result.serverDateTime as string).getTime();
-      expect(parsed).toBeGreaterThanOrEqual(before);
-      expect(parsed).toBeLessThanOrEqual(Date.now());
+      await expect(controller.chat(request)).resolves.toBe(response);
+      expect(service.chat).toHaveBeenCalledWith(request);
     });
   });
 });

@@ -112,15 +112,23 @@ az containerapp create \
 
 ### 4. Set environment variables and secrets
 
-Per [`env.md`](./env.md), `AZURE_AD_CLIENT_SECRET` is a real secret and should
-go through Container Apps' secrets store, referenced by the env var rather than
-set as a plain value:
+**This is now done by `docker-publish.yml` on every push to `main`**, not by
+hand — see [Deployment configuration](#deployment-configuration) below for the
+repository variables and secrets it reads. The commands below are what the
+workflow runs, kept here for a first-time setup before any deploy has happened,
+and for recovering an environment without waiting on a push.
+
+Per [`env.md`](./env.md), `AZURE_AD_CLIENT_SECRET` and `AZURE_OPENAI_API_KEY`
+are real secrets and go through Container Apps' secrets store, referenced by the
+env var rather than set as plain values:
 
 ```bash
 az containerapp secret set \
   --name container-app-spo-assistants \
   --resource-group rg-spo-assistants \
-  --secrets azure-ad-client-secret="<AZURE_AD_CLIENT_SECRET value>"
+  --secrets \
+    azure-ad-client-secret="<AZURE_AD_CLIENT_SECRET value>" \
+    azure-openai-api-key="<AZURE_OPENAI_API_KEY value>"
 
 az containerapp update \
   --name container-app-spo-assistants \
@@ -129,11 +137,48 @@ az containerapp update \
     AZURE_AD_API_CLIENT_ID="<AZURE_AD_API_CLIENT_ID value>" \
     AZURE_AD_TENANT_ID="<AZURE_AD_TENANT_ID value — the SharePoint tenant, not necessarily this Azure tenant>" \
     AZURE_AD_CLIENT_SECRET=secretref:azure-ad-client-secret \
-    CORS_ALLOWED_ORIGINS="<the SharePoint tenant's domain, e.g. https://mmcbpm.sharepoint.com>"
+    AZURE_OPENAI_API_KEY=secretref:azure-openai-api-key \
+    AZURE_OPENAI_DEPLOYMENT="<model deployment name, not the model name>" \
+    AZURE_OPENAI_ENDPOINT="https://<resource-name>.openai.azure.com" \
+    CORS_ALLOWED_ORIGINS="<the SharePoint tenant's domain, e.g. https://mmcbpm.sharepoint.com>" \
+    OPENAI_AGENTS_DISABLE_TRACING=1
 ```
 
 `PORT` isn't set — the app's default of `3000` already matches
-`--target-port` above.
+`--target-port` above. `AZURE_OPENAI_API_VERSION` isn't set either — the schema
+defaults it to `2024-10-21`.
+
+### Deployment configuration
+
+`docker-publish.yml` reads these from the repository on each push and applies
+them to the Container App before deploying the image. Non-secret values are
+**repository variables** (Settings → Secrets and variables → Actions →
+Variables); the two credentials are **repository secrets**. A missing or empty
+entry fails the workflow before it touches the Container App, rather than
+crash-looping the revision.
+
+| GitHub | Name |
+| --- | --- |
+| Variable | `AZURE_AD_API_CLIENT_ID` |
+| Variable | `AZURE_AD_TENANT_ID` (the SharePoint tenant — **not** the `AZURE_TENANT_ID` secret used for OIDC login, which is the hosting tenant) |
+| Variable | `AZURE_OPENAI_DEPLOYMENT` |
+| Variable | `AZURE_OPENAI_ENDPOINT` |
+| Variable | `CORS_ALLOWED_ORIGINS` |
+| Secret | `AZURE_AD_CLIENT_SECRET` |
+| Secret | `AZURE_OPENAI_API_KEY` |
+
+Consequences worth knowing:
+
+- The repository is now the source of truth for this configuration. A value
+  changed in the portal is overwritten on the next push to `main`.
+- `--set-env-vars` only adds or updates the names listed above. Retiring a
+  variable means removing it from the app explicitly
+  (`az containerapp update --remove-env-vars`); dropping it from the workflow
+  leaves the old value in place.
+- The deploy identity needs permission to write secrets as well as update the
+  app. **Container Apps Contributor** covers both; if `az containerapp secret
+  set` returns an authorization error on the first run, that role assignment is
+  what to check.
 
 ## Verifying the deployment
 

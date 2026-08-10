@@ -1,9 +1,21 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
+
+import type { AssistantConfiguration } from './assistant-configuration';
+import { ChatRequest } from './chat-request';
+import type { ChatResponse } from './chat-response';
+import { SiteAssistantService } from './site-assistant.service';
 
 @Controller('assistants/site-assistant')
 export class SiteAssistantController {
+  constructor(private readonly siteAssistantService: SiteAssistantService) {}
+
+  @Get()
+  getConfiguration(): AssistantConfiguration {
+    return this.siteAssistantService.getConfiguration();
+  }
+
   @Post('chat')
-  chat(@Body() body: Record<string, unknown>): Record<string, unknown> {
-    return { ...body, serverDateTime: new Date().toISOString() };
+  chat(@Body() request: ChatRequest): Promise<ChatResponse> {
+    return this.siteAssistantService.chat(request);
   }
 }
