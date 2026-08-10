@@ -64,16 +64,40 @@ with working code. Everything after this phase is repetition of a proven shape.
   spec doc was deleted — this is an open decision, not a build task.
 - [ ] `GraphClient` (OBO + first typed wrappers) and `list_recent_files` tool.
 - [ ] Minimal orchestrator: real LLM loop (prompt → tool schemas → dispatch → continue), one tool.
-- [ ] `LlmClient` token + Azure OpenAI implementation.
-- [ ] Working `/chat` endpoint. **Streaming is deferred** — for now the client
-  posts the full conversation history each request and gets a complete response
-  back; SSE is a later transport change, not a prerequisite. Groundwork exists
-  but is not this: `POST /assistants/site-assistant/chat` (API) is a plain JSON
-  echo with no LLM behind it, and `components/chat/` (SPFx) is a real,
-  code-split, Fluent-based chat surface wired to that stub. Proves the plumbing
-  (SPFx → API round trip, UI segmentation, bundle-splitting) only. No
-  request/response contract is currently specified anywhere — define it
-  alongside the implementation.
+- [x] Azure OpenAI wired up: `AzureOpenAI` client behind the
+  `AZURE_OPENAI_CLIENT` injection token in `assistants/` (no separate `llm/`
+  module — it has one consumer), passed explicitly to the agent's model
+  rather than through the SDK's process-wide default client, so the dependency
+  arrives via DI and can be faked in tests. Agents SDK tracing disabled at
+  construction — it defaults to exporting prompts and results to OpenAI.
+  Chat Completions rather than Responses, since Azure's Responses support
+  varies by api-version/region/deployment. No hand-rolled `LlmClient`
+  abstraction: the SDK owns the call loop, so a second seam would be redundant.
+- [x] Working `/chat` endpoint against a real model, no tools yet.
+  **Streaming is deferred** — the client posts the full conversation history
+  each request and gets a complete response back; SSE is a later transport
+  change, not a prerequisite. `POST /assistants/site-assistant/chat` takes
+  `{ chatId?, messages[], pageContext? }` and returns `{ chatId, message }`;
+  `GET /assistants/site-assistant` serves the greeting and starter prompts so
+  copy changes don't require an SPFx redeploy.
+
+  Contract decisions, made for forward compatibility with a tenant-deployed
+  client that cannot be force-upgraded: objects (never bare arrays) at every
+  level so new fields are additive; server-minted `chatId` and per-message
+  `id`s; `content` stays a plain string, with citations and richer content to
+  arrive later as sibling fields; `pageContext` accepted but ignored today so
+  clients carry it before the server uses it. `ValidationPipe` (registered as
+  `APP_PIPE` in `AppModule`, not at bootstrap, so tests and any alternate host
+  get the same validation) uses `whitelist: true` **without**
+  `forbidNonWhitelisted`, so a newer client sending an unknown field is
+  tolerated rather than 400'd. Inbound and outbound message shapes are separate
+  types (`ChatRequestMessage` / `ChatMessage`); message length is bounded per
+  role, since a replayed assistant turn is routinely longer than anything a user
+  types.
+
+  Still open: the error contract (the client needs to tell "retry" from
+  "rephrase" on 429s and content-filter blocks), and whether the response
+  reports tool activity once tools exist.
 - [ ] **Spike within this phase:** `AadHttpClient` vs. raw `fetch` + manually acquired
   token for SSE consumption (AadHttpClient does not expose response streams cleanly).
   Decision recorded as a note on ADR-008 or a new ADR.

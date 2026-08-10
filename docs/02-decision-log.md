@@ -113,8 +113,11 @@ sample project's registry alone.
   crash-loop-from-missing-env-vars symptom this project actually hit — is
   recorded in
   [`azure-container-services-setup.md`](./azure-container-services-setup.md),
-  since none of it is scripted or repeatable via `az containerapp create`
-  alone.
+  since none of it is repeatable via `az containerapp create` alone. Env var and
+  secret wiring is no longer manual — `docker-publish.yml` applies it on every
+  push from repository variables and secrets, so the repo is the source of truth
+  and a portal edit is overwritten on the next deploy. The commands stay in that
+  doc for first-time setup and environment recovery.
 - **Deployment is now automated.** `docker-publish.yml` builds, pushes to
   GHCR, then (push-only) deploys the exact just-published image — via a
   dedicated `github-actions-spo-assistants-deploy` app registration,

@@ -40,8 +40,11 @@ doc in the same PR.
   concrete implementation in that module's provider config; a feature module then
   never imports a concrete implementation directly. This is a style rule for how
   to build such a seam, not a standing decision that any particular seam exists.
-  Which dependencies get one — notably the LLM client, where an SDK that owns the
-  call loop may make a hand-rolled seam counterproductive — is an open question.
+  The Azure OpenAI client is wired this way, inside `assistants/` — bound to the
+  `AZURE_OPENAI_CLIENT` token and passed explicitly to the agent's model rather
+  than registered as the Agents SDK's process-wide default. It lives with its
+  only consumer rather than in a module of its own; give it one when something
+  outside `assistants/` needs it.
 - There is no tool convention yet. An earlier doc specified plain objects
   implementing a `Tool` interface registered into a `ToolRegistry`, but no tool,
   interface, or registry was ever written, and whether tools are defined by hand
@@ -68,6 +71,12 @@ doc in the same PR.
   `FindStaleContentTool`).
 - No `Model` suffix on request/response model classes — the bare noun is the
   name (`Attachment`, `ChatRequest`, `ChatResponse`), not `AttachmentModel`.
+- Inbound and outbound shapes are separate types even when they look alike.
+  Inbound is a class carrying `class-validator` decorators (`ChatRequestMessage`);
+  outbound is a plain `readonly` interface (`ChatMessage`), since server-produced
+  values need no validation. Sharing one class conflates two contracts — it
+  advertises server-only fields as client-settable and forces one set of
+  constraints onto both directions.
 - One primary export per file; file name is the kebab-case form of the
   primary export plus its type suffix.
 - Test files colocated as `*.spec.ts` next to the file under test

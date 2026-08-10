@@ -5,11 +5,20 @@
 import 'reflect-metadata';
 
 import { plainToInstance, Type } from 'class-transformer';
-import { IsInt, IsString, Max, Min, validateSync, type ValidationError } from 'class-validator';
+import {
+  IsInt,
+  IsString,
+  IsUrl,
+  Max,
+  Min,
+  validateSync,
+  type ValidationError,
+} from 'class-validator';
 
 export const DEFAULTS = {
   PORT: 3000,
   CORS_ALLOWED_ORIGINS: 'https://localhost:4321',
+  AZURE_OPENAI_API_VERSION: '2024-10-21',
 };
 
 export class EnvironmentVariables {
@@ -21,6 +30,20 @@ export class EnvironmentVariables {
 
   @IsString()
   AZURE_AD_TENANT_ID!: string;
+
+  @IsString()
+  AZURE_OPENAI_API_KEY!: string;
+
+  @IsString()
+  AZURE_OPENAI_API_VERSION: string = DEFAULTS.AZURE_OPENAI_API_VERSION;
+
+  @IsString()
+  AZURE_OPENAI_DEPLOYMENT!: string;
+
+  // `require_tld: false` so a local mock or proxy on a bare hostname still boots;
+  // the point is to fail a malformed endpoint at startup rather than at first request.
+  @IsUrl({ require_tld: false })
+  AZURE_OPENAI_ENDPOINT!: string;
 
   @Type(() => Number)
   @IsInt()

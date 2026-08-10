@@ -32,9 +32,8 @@ specific detail is wanted: `git show 02a3bd7:docs/03-contracts.md`.
 
 ## Tech stack
 
-NestJS · TypeScript · Microsoft Graph (delegated/OBO) · Azure OpenAI (target;
-not yet wired). Chat currently posts full conversation history per request;
-streaming transport is deferred, not decided.
+NestJS · TypeScript · Microsoft Graph (delegated/OBO) · Azure OpenAI via the
+[OpenAI Agents SDK](https://openai.github.io/openai-agents-js/) (`@openai/agents`)
 
 ## Getting started
 
