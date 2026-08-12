@@ -17,7 +17,6 @@ inherited for free rather than reimplemented.
 
 | Doc | Purpose |
 |---|---|
-| [02-decision-log.md](./docs/02-decision-log.md) | ADRs — the *why* behind each decision, incl. accepted tradeoffs |
 | [05-build-plan.md](./docs/plans/05-build-plan.md) | Phased roadmap sequenced by risk retirement |
 | [code-conventions.md](./docs/code-conventions.md) | NestJS/TypeScript conventions used in this repo |
 | [env.md](./docs/env.md) | Environment/secret variables |

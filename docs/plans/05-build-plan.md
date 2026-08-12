@@ -100,7 +100,7 @@ with working code. Everything after this phase is repetition of a proven shape.
   reports tool activity once tools exist.
 - [ ] **Spike within this phase:** `AadHttpClient` vs. raw `fetch` + manually acquired
   token for SSE consumption (AadHttpClient does not expose response streams cleanly).
-  Decision recorded as a note on ADR-008 or a new ADR.
+  Record the outcome in the code and its tests.
 
 **Exit:** "what are the recent files here?" answered with streamed, grounded,
 security-trimmed results on a real page.
@@ -138,7 +138,7 @@ handle survive (or transparently recover from) expiry.
 ## Phase 4 — Breadth *(~2–3 wks, three parallelizable tracks)*
 
 The phase that *tests the architecture*: each track should be mostly tools +
-prompts + instances. If any track demands orchestrator changes, stop and ADR it.
+prompts + instances. If any track demands orchestrator changes, stop and raise it.
 
 - [ ] **Track A — Content manager:** `find_stale_content` (search managed view
   properties), `archive_item`; audience filtering wired to real permission
@@ -154,7 +154,7 @@ prompts + instances. If any track demands orchestrator changes, stop and ADR it.
 **Exit:** all four launch assistants live on pilot sites, with the platform thesis
 validated in practice — adding an assistant that reuses existing capabilities should
 cost a prompt, a configuration record, and no client change. If it costs more than
-that, the extension model is wrong and needs an ADR.
+that, the extension model is wrong and needs rethinking.
 
 ## Phase 5 — Hardening for 100K *(~2–3 wks + ongoing)*
 
