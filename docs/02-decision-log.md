@@ -128,3 +128,32 @@ sample project's registry alone.
 - Revisit trigger: real (non-sample) traffic that risks exceeding the
   Consumption plan's free allowance, or a requirement that rules out
   GHCR's public visibility.
+
+---
+
+## ADR-011: Native Agents SDK function tools with NestJS operation services
+
+**Status:** Accepted
+
+**Context.** Phase 1 needs a real tool-call loop and a first security-trimmed
+Graph capability. A hand-rolled tool registry would duplicate the loop already
+provided by the chosen Agents SDK, but allowing the SDK descriptors to contain
+Graph access would make the data-access operations hard to reuse or test.
+
+**Decision.** Use the Agents SDK's native function-tool mechanism for tool
+schemas, argument collection, dispatch, and the model continuation loop. A
+tool is a lightweight injectable descriptor that obtains only the current
+execution context and delegates its operation to a NestJS service. The NestJS
+service owns OBO token exchange, Graph client creation, Graph calls, response
+mapping, and tests.
+
+**Consequences.**
+
+- `list_recent_files` is the first implementation: it has no user-settable
+  parameters, passes the authenticated user's access token and current site to
+  `RecentFilesService`, and returns a compact file list to the model.
+- The SDK is the current LLM-loop seam, while Graph operations stay ordinary
+  NestJS dependencies reusable by a future registry, MCP adapter, or non-LLM
+  endpoint.
+- Do not introduce a general registry until more than one execution surface
+  creates a concrete shared requirement.

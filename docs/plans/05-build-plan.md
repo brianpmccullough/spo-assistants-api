@@ -58,11 +58,13 @@ SPFx → API → OBO → Graph.
 **Retires:** streaming-through-infrastructure risk; validates the tool contract
 with working code. Everything after this phase is repetition of a proven shape.
 
-- [ ] Decide how tools are defined and dispatched (hand-rolled registry vs. an
-  agent framework such as the OpenAI Agents SDK), then build it. The previous
-  `ToolRegistry` + `Tool`/`ToolContext` design was never implemented and its
-  spec doc was deleted — this is an open decision, not a build task.
-- [ ] `GraphClient` (OBO + first typed wrappers) and `list_recent_files` tool.
+- [x] Tools use the OpenAI Agents SDK's native function-tool loop. Each tool is
+  a lightweight descriptor and parameter collector; its work remains in a
+  NestJS service, which owns Graph calls and delegated-token acquisition. This
+  avoids a speculative registry while retaining reusable non-LLM operations.
+- [x] First typed Graph wrapper and `list_recent_files` tool. It uses Microsoft
+  Search with the signed-in user's OBO token, scoped to the current site and
+  sorted by last modification time.
 - [ ] Minimal orchestrator: real LLM loop (prompt → tool schemas → dispatch → continue), one tool.
 - [x] Azure OpenAI wired up: `AzureOpenAI` client behind the
   `AZURE_OPENAI_CLIENT` injection token in `assistants/` (no separate `llm/`
