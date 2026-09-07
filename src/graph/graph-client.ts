@@ -3,10 +3,10 @@ import type { User as GraphUser } from '@microsoft/microsoft-graph-types';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import type { CurrentUser } from './current-user';
+import { GraphScopes } from './graph-scopes';
 import { ConfigurationService } from '../configuration/configuration.service';
 
 const GRAPH_BASE_URL = 'https://graph.microsoft.com/v1.0';
-const USER_READ_SCOPE = 'https://graph.microsoft.com/User.Read';
 
 @Injectable()
 export class GraphClient {
@@ -25,8 +25,11 @@ export class GraphClient {
     });
   }
 
-  async getCurrentUser(userAccessToken: string): Promise<CurrentUser> {
-    const oboAccessToken = await this.acquireOboToken(userAccessToken, [USER_READ_SCOPE]);
+  async getCurrentUser(
+    userAccessToken: string,
+    scopes: GraphScopes[] = [GraphScopes.Default],
+  ): Promise<CurrentUser> {
+    const oboAccessToken = await this.acquireOboToken(userAccessToken, scopes);
     const response = await fetch(`${GRAPH_BASE_URL}/me`, {
       headers: { Authorization: `Bearer ${oboAccessToken}` },
     });

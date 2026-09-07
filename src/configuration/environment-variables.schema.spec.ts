@@ -7,6 +7,7 @@ const REQUIRED_VARIABLES = {
   AZURE_OPENAI_API_KEY: 'test-openai-key',
   AZURE_OPENAI_DEPLOYMENT: 'test-deployment',
   AZURE_OPENAI_ENDPOINT: 'https://test-resource.openai.azure.com',
+  CHAT_HMAC_SECRET: 'test-chat-hmac-secret',
 };
 
 describe('validate', () => {
@@ -16,6 +17,9 @@ describe('validate', () => {
     expect(environmentVariables.PORT).toBe(DEFAULTS.PORT);
     expect(environmentVariables.CORS_ALLOWED_ORIGINS).toBe(DEFAULTS.CORS_ALLOWED_ORIGINS);
     expect(environmentVariables.AZURE_OPENAI_API_VERSION).toBe(DEFAULTS.AZURE_OPENAI_API_VERSION);
+    expect(environmentVariables.AZURE_OPENAI_MAX_OUTPUT_TOKENS).toBe(
+      DEFAULTS.AZURE_OPENAI_MAX_OUTPUT_TOKENS,
+    );
   });
 
   it('coerces PORT to a number', () => {

@@ -1,122 +1,99 @@
-// class-validator/class-transformer decorators on the chat models below are
-// applied at import time and need reflect-metadata; nothing boots Nest here.
-import 'reflect-metadata';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
-import { run, type AgentInputItem } from '@openai/agents';
-import type { AzureOpenAI } from 'openai';
-
+import { ChatIntegrityService } from './chat-integrity.service';
+import { ChatMessage } from './chat-message';
 import { ChatRequest } from './chat-request';
-import { ChatRequestMessage } from './chat-request-message';
 import { ChatRole } from './chat-role';
+import { MAX_HISTORY_LENGTH } from './chat-state';
+import { SiteAssistantLlmService } from './site-assistant-llm.service';
 import { SiteAssistantService } from './site-assistant.service';
-import { ConfigurationService } from '../configuration/configuration.service';
+import { AuthenticatedUser } from '../auth/authenticated-user';
 
-jest.mock('@openai/agents', () => ({
-  ...jest.requireActual<typeof import('@openai/agents')>('@openai/agents'),
-  run: jest.fn(),
-}));
-
-const runMock = run as unknown as jest.Mock;
-
-function buildService(): SiteAssistantService {
-  const configuration = {
-    settings: { azureOpenAiDeployment: 'gpt-4o-mini' },
-  } as ConfigurationService;
-
-  return new SiteAssistantService({} as AzureOpenAI, configuration);
-}
-
-function buildMessage(role: ChatRole, content: string): ChatRequestMessage {
-  const message = new ChatRequestMessage();
-  message.role = role;
-  message.content = content;
-  return message;
+function buildHistory(length: number): ChatMessage[] {
+  return Array.from({ length }, (_, index) => ({
+    role: index % 2 === 0 ? ChatRole.User : ChatRole.Assistant,
+    content: `message ${index}`,
+    timestamp: index,
+  }));
 }
 
 describe('SiteAssistantService', () => {
+  const user: AuthenticatedUser = { id: 'user-1', accessToken: 'token' };
+
+  let llm: { execute: jest.Mock<Promise<{ content: string }>, [unknown, ChatMessage[]]> };
+  let integrity: { sign: jest.Mock; verify: jest.Mock };
+  let service: SiteAssistantService;
+
   beforeEach(() => {
-    runMock.mockReset();
+    llm = {
+      execute: jest
+        .fn<Promise<{ content: string }>, [unknown, ChatMessage[]]>()
+        .mockResolvedValue({ content: 'response' }),
+    };
+    integrity = {
+      sign: jest.fn().mockReturnValue('new-signature'),
+      verify: jest.fn().mockReturnValue(true),
+    };
+
+    service = new SiteAssistantService(
+      llm as unknown as SiteAssistantLlmService,
+      integrity as unknown as ChatIntegrityService,
+    );
   });
 
-  describe('getConfiguration', () => {
-    it('returns a greeting and starter prompts', () => {
-      const configuration = buildService().getConfiguration();
+  function buildRequest(overrides: Partial<ChatRequest> = {}): ChatRequest {
+    const request = new ChatRequest();
+    request.message = 'hello';
+    request.context = { siteUrl: 'https://contoso.sharepoint.com/sites/team' };
+    return Object.assign(request, overrides);
+  }
 
-      expect(configuration.assistantId).toBe('site-assistant');
-      expect(configuration.greeting).toBeTruthy();
-      expect(configuration.starterPrompts.length).toBeGreaterThan(0);
+  it('rejects a user with no access token', async () => {
+    await expect(service.chat({ id: 'user-1', accessToken: '' }, buildRequest())).rejects.toThrow(
+      UnauthorizedException,
+    );
+  });
+
+  it('rejects a chat state that fails signature verification', async () => {
+    integrity.verify.mockReturnValue(false);
+    const request = buildRequest({
+      state: { chatId: 'chat-1', history: buildHistory(2), signature: 'bad-signature' },
+    });
+
+    await expect(service.chat(user, request)).rejects.toThrow(BadRequestException);
+  });
+
+  it('sends the LLM a message list capped at the configured history length', async () => {
+    const request = buildRequest({
+      state: {
+        chatId: 'chat-1',
+        history: buildHistory(MAX_HISTORY_LENGTH + 10),
+        signature: 'signature',
+      },
+    });
+
+    await service.chat(user, request);
+
+    const messagesSentToLlm = llm.execute.mock.calls[0][1];
+    expect(messagesSentToLlm).toHaveLength(MAX_HISTORY_LENGTH);
+    expect(messagesSentToLlm[messagesSentToLlm.length - 1]).toMatchObject({
+      role: ChatRole.User,
+      content: 'hello',
     });
   });
 
-  describe('chat', () => {
-    it('maps user and assistant history into agent input items', async () => {
-      runMock.mockResolvedValue({ finalOutput: 'the answer' });
-      const request = new ChatRequest();
-      request.messages = [
-        buildMessage(ChatRole.User, 'first question'),
-        buildMessage(ChatRole.Assistant, 'first answer'),
-        buildMessage(ChatRole.User, 'second question'),
-      ];
-
-      await buildService().chat(request);
-
-      expect(runMock).toHaveBeenCalledTimes(1);
-      const [, agentInput] = runMock.mock.calls[0] as [unknown, AgentInputItem[]];
-      expect(agentInput).toEqual([
-        { role: 'user', content: 'first question' },
-        {
-          role: 'assistant',
-          status: 'completed',
-          content: [{ type: 'output_text', text: 'first answer' }],
-        },
-        { role: 'user', content: 'second question' },
-      ]);
+  it('returns a signed state whose history never exceeds the configured maximum', async () => {
+    const request = buildRequest({
+      state: {
+        chatId: 'chat-1',
+        history: buildHistory(MAX_HISTORY_LENGTH),
+        signature: 'signature',
+      },
     });
 
-    it('runs the agent under an abort signal so a stalled model call cannot hang', async () => {
-      runMock.mockResolvedValue({ finalOutput: 'the answer' });
-      const request = new ChatRequest();
-      request.messages = [buildMessage(ChatRole.User, 'hello')];
+    const response = await service.chat(user, request);
 
-      await buildService().chat(request);
-
-      const [, , options] = runMock.mock.calls[0] as [unknown, unknown, { signal: AbortSignal }];
-      expect(options.signal).toBeInstanceOf(AbortSignal);
-    });
-
-    it('mints a chatId when the request does not carry one', async () => {
-      runMock.mockResolvedValue({ finalOutput: 'the answer' });
-      const request = new ChatRequest();
-      request.messages = [buildMessage(ChatRole.User, 'hello')];
-
-      const response = await buildService().chat(request);
-
-      expect(response.chatId).toEqual(expect.any(String));
-      expect(response.chatId.length).toBeGreaterThan(0);
-      expect(response.message.id).toEqual(expect.any(String));
-      expect(response.message.role).toBe(ChatRole.Assistant);
-      expect(response.message.content).toBe('the answer');
-    });
-
-    it('preserves the chatId the client sends back', async () => {
-      runMock.mockResolvedValue({ finalOutput: 'the answer' });
-      const request = new ChatRequest();
-      request.chatId = 'existing-chat';
-      request.messages = [buildMessage(ChatRole.User, 'hello')];
-
-      const response = await buildService().chat(request);
-
-      expect(response.chatId).toBe('existing-chat');
-    });
-
-    it('returns empty content when the model produces no output', async () => {
-      runMock.mockResolvedValue({ finalOutput: undefined });
-      const request = new ChatRequest();
-      request.messages = [buildMessage(ChatRole.User, 'hello')];
-
-      const response = await buildService().chat(request);
-
-      expect(response.message.content).toBe('');
-    });
+    expect(response.state.history.length).toBeLessThanOrEqual(MAX_HISTORY_LENGTH);
+    expect(integrity.sign).toHaveBeenCalledWith(user, response.state.history);
   });
 });

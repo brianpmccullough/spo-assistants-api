@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { decode, verify, type JwtPayload } from 'jsonwebtoken';
+import { decode, type JwtPayload, verify } from 'jsonwebtoken';
 
 import type { AuthenticatedRequest } from './authenticated-request';
 import type { AuthenticatedUser } from './authenticated-user';

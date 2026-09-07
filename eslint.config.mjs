@@ -51,6 +51,13 @@ export default tseslint.config(
           alphabetize: { order: 'asc', caseInsensitive: true },
         },
       ],
+      'sort-imports': [
+        'error',
+        {
+          ignoreDeclarationSort: true,
+          ignoreCase: true,
+        },
+      ],
     },
   },
 );

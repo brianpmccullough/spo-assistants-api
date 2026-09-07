@@ -1,9 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
 import { ChatRequest } from './chat-request';
+import type { ChatResponse } from './chat-response';
 import { ChatRole } from './chat-role';
 import { SiteAssistantController } from './site-assistant.controller';
 import { SiteAssistantService } from './site-assistant.service';
+import type { AuthenticatedRequest } from '../auth/authenticated-request';
+import type { AuthenticatedUser } from '../auth/authenticated-user';
 
 describe('SiteAssistantController', () => {
   let controller: SiteAssistantController;
@@ -39,15 +42,24 @@ describe('SiteAssistantController', () => {
   describe('chat', () => {
     it('delegates to the service and returns its response', async () => {
       const request = new ChatRequest();
-      request.messages = [{ role: ChatRole.User, content: 'hello' }];
-      const response = {
-        chatId: 'chat-1',
-        message: { id: 'message-1', role: ChatRole.Assistant, content: 'hi' },
+      request.message = 'hello';
+      request.context = { siteUrl: 'https://contoso.sharepoint.com/sites/team' };
+
+      const user: AuthenticatedUser = { id: 'user-1', accessToken: 'token' };
+      const httpRequest = { user } as AuthenticatedRequest;
+
+      const response: ChatResponse = {
+        message: 'hi',
+        state: {
+          chatId: 'chat-1',
+          history: [{ role: ChatRole.Assistant, content: 'hi', timestamp: 0 }],
+          signature: 'signature',
+        },
       };
       service.chat.mockResolvedValue(response);
 
-      await expect(controller.chat(request)).resolves.toBe(response);
-      expect(service.chat).toHaveBeenCalledWith(request);
+      await expect(controller.chat(httpRequest, request)).resolves.toBe(response);
+      expect(service.chat).toHaveBeenCalledWith(user, request);
     });
   });
 });

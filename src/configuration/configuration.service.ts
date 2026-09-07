@@ -9,6 +9,7 @@ export interface Settings {
   readonly azureOpenAiApiVersion: string;
   readonly azureOpenAiDeployment: string;
   readonly azureOpenAiEndpoint: string;
+  readonly azureOpenAiMaxOutputTokens: number;
   readonly port: number;
   readonly corsAllowedOrigins: string[];
 }
@@ -30,6 +31,9 @@ export class ConfigurationService {
       azureOpenAiApiVersion: configService.get('AZURE_OPENAI_API_VERSION', { infer: true }),
       azureOpenAiDeployment: configService.get('AZURE_OPENAI_DEPLOYMENT', { infer: true }),
       azureOpenAiEndpoint: configService.get('AZURE_OPENAI_ENDPOINT', { infer: true }),
+      azureOpenAiMaxOutputTokens: configService.get('AZURE_OPENAI_MAX_OUTPUT_TOKENS', {
+        infer: true,
+      }),
       port: configService.get('PORT', { infer: true }),
       corsAllowedOrigins: ConfigurationService.parseDelimitedList(
         configService.get('CORS_ALLOWED_ORIGINS', { infer: true }),

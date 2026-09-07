@@ -19,6 +19,7 @@ export const DEFAULTS = {
   PORT: 3000,
   CORS_ALLOWED_ORIGINS: 'https://localhost:4321',
   AZURE_OPENAI_API_VERSION: '2024-10-21',
+  AZURE_OPENAI_MAX_OUTPUT_TOKENS: 2048,
 };
 
 export class EnvironmentVariables {
@@ -40,6 +41,11 @@ export class EnvironmentVariables {
   @IsString()
   AZURE_OPENAI_DEPLOYMENT!: string;
 
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  AZURE_OPENAI_MAX_OUTPUT_TOKENS: number = DEFAULTS.AZURE_OPENAI_MAX_OUTPUT_TOKENS;
+
   // `require_tld: false` so a local mock or proxy on a bare hostname still boots;
   // the point is to fail a malformed endpoint at startup rather than at first request.
   @IsUrl({ require_tld: false })
@@ -53,6 +59,12 @@ export class EnvironmentVariables {
 
   @IsString()
   CORS_ALLOWED_ORIGINS: string = DEFAULTS.CORS_ALLOWED_ORIGINS;
+
+  // No default: chat history is returned to the client and handed back on the next
+  // turn, so this HMAC key is what stops a caller editing the transcript. A fallback
+  // value would silently make that signature forgeable.
+  @IsString()
+  CHAT_HMAC_SECRET!: string;
 }
 
 function formatValidationError(error: ValidationError): string {

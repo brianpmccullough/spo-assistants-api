@@ -91,7 +91,7 @@ with working code. Everything after this phase is repetition of a proven shape.
   get the same validation) uses `whitelist: true` **without**
   `forbidNonWhitelisted`, so a newer client sending an unknown field is
   tolerated rather than 400'd. Inbound and outbound message shapes are separate
-  types (`ChatRequestMessage` / `ChatMessage`); message length is bounded per
+  types (`ChatMessage` / `ChatMessage`); message length is bounded per
   role, since a replayed assistant turn is routinely longer than anything a user
   types.
 

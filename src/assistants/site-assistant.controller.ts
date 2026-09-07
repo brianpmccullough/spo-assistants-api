@@ -1,9 +1,10 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 
 import type { AssistantConfiguration } from './assistant-configuration';
 import { ChatRequest } from './chat-request';
 import type { ChatResponse } from './chat-response';
 import { SiteAssistantService } from './site-assistant.service';
+import type { AuthenticatedRequest } from '../auth/authenticated-request';
 
 @Controller('assistants/site-assistant')
 export class SiteAssistantController {
@@ -15,7 +16,10 @@ export class SiteAssistantController {
   }
 
   @Post('chat')
-  chat(@Body() request: ChatRequest): Promise<ChatResponse> {
-    return this.siteAssistantService.chat(request);
+  chat(
+    @Req() httpRequest: AuthenticatedRequest,
+    @Body() request: ChatRequest,
+  ): Promise<ChatResponse> {
+    return this.siteAssistantService.chat(httpRequest.user, request);
   }
 }

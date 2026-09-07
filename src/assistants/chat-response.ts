@@ -1,9 +1,6 @@
-import type { ChatMessage } from './chat-message';
+import { ChatState } from './chat-state';
 
-/**
- * Later additions (citations, tool activity, usage) are additive and non-breaking for clients.
- */
-export interface ChatResponse {
-  readonly chatId: string;
-  readonly message: ChatMessage;
+export class ChatResponse {
+  message!: string;
+  state!: ChatState;
 }

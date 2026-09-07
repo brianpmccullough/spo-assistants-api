@@ -20,6 +20,8 @@ doc in the same PR.
 - No use of `any`. Prefer a specific type.  If a type cannot be used, use `unknown`.  `any` is ONLY acceptable in APIs or libraries that are outside the control of this code.
 - No abbreviations in identifiers (variables, functions, classes, files) unless
   it's a very well-known abbreviation for a coding concept (`Api`, `Http`, `Url`, `Id`) or a typical convention for this NestJS framework. Spell it out otherwise — `configuration` not `config`, `message` not `msg`.
+- Use single quotes for strings, including imports.
+
 
 ## NestJS structure
 
@@ -72,7 +74,7 @@ doc in the same PR.
 - No `Model` suffix on request/response model classes — the bare noun is the
   name (`Attachment`, `ChatRequest`, `ChatResponse`), not `AttachmentModel`.
 - Inbound and outbound shapes are separate types even when they look alike.
-  Inbound is a class carrying `class-validator` decorators (`ChatRequestMessage`);
+  Inbound is a class carrying `class-validator` decorators (`ChatMessage`);
   outbound is a plain `readonly` interface (`ChatMessage`), since server-produced
   values need no validation. Sharing one class conflates two contracts — it
   advertises server-only fields as client-settable and forces one set of

@@ -1,6 +1,6 @@
 import { generateKeyPairSync, type JsonWebKey, type KeyObject } from 'node:crypto';
 
-import { UnauthorizedException, type ExecutionContext } from '@nestjs/common';
+import { type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { sign } from 'jsonwebtoken';
 
