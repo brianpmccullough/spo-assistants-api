@@ -63,7 +63,8 @@ export class RecentFilesService {
   }
 
   private toSitePath(siteUrl: string): string {
-    return `${siteUrl.replace(/\/$/, '')}/*`;
+    const siteRoot = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
+    return `${siteRoot}/*`;
   }
 
   private toRecentFile(hit: DriveItemSearchHit): RecentFile[] {

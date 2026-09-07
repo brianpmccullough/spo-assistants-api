@@ -22,6 +22,18 @@ doc in the same PR.
   it's a very well-known abbreviation for a coding concept (`Api`, `Http`, `Url`, `Id`) or a typical convention for this NestJS framework. Spell it out otherwise — `configuration` not `config`, `message` not `msg`.
 - Use single quotes for strings, including imports.
 
+### Strings and regular expressions
+
+- Prefer explicit string and platform APIs over regular expressions:
+  `startsWith`/`endsWith`, `slice`, `replaceAll`, `split` with a literal
+  delimiter, `URL`, and a small parser expressed in ordinary control flow.
+  Do not use a regex for fixed prefixes, suffixes, delimiters, or exact tokens.
+- Use a regular expression only when the rule is inherently pattern-based and
+  cannot be expressed clearly with those APIs. Keep it local, make it as small
+  as possible, and add a short comment that describes the rule in plain language
+  when the pattern is not immediately obvious. Prefer a named parser when the
+  same pattern or a closely related one is needed more than once.
+
 
 ## NestJS structure
 
@@ -42,16 +54,11 @@ doc in the same PR.
   concrete implementation in that module's provider config; a feature module then
   never imports a concrete implementation directly. This is a style rule for how
   to build such a seam, not a standing decision that any particular seam exists.
-  The Azure OpenAI client is wired this way, inside `assistants/` — bound to the
-  `AZURE_OPENAI_CLIENT` token and passed explicitly to the agent's model rather
-  than registered as the Agents SDK's process-wide default. It lives with its
-  only consumer rather than in a module of its own; give it one when something
-  outside `assistants/` needs it.
-- There is no tool convention yet. An earlier doc specified plain objects
-  implementing a `Tool` interface registered into a `ToolRegistry`, but no tool,
-  interface, or registry was ever written, and whether tools are defined by hand
-  or by an agent framework is undecided. Settle that first, then record the
-  convention here — don't infer one from the deleted doc.
+- Agents SDK function tools are lightweight injectable descriptors: define the
+  model-visible schema, collect validated parameters and the run context, then
+  delegate to a NestJS service. Keep Graph calls, OBO token exchange, response
+  mapping, and business rules in that service; do not embed them in the tool
+  descriptor. See ADR-011.
 - Controllers stay thin: validate/transform input (model class + `class-validator`),
   delegate to a service, map the result to an HTTP/SSE response. No business
   logic in controllers.
