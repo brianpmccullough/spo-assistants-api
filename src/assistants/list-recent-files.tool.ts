@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { tool, Tool } from '@openai/agents';
+import { RunContext, tool, Tool } from '@openai/agents';
 
 import { AssistantExecutionContext } from './assistant-execution-context';
 import { RecentFilesService } from '../graph/recent-files.service';
@@ -23,7 +23,7 @@ export class ListRecentFilesTool {
         additionalProperties: false,
       },
       strict: true,
-      execute: async (_input, context) => {
+      execute: async (_input: unknown, context?: RunContext<AssistantExecutionContext>) => {
         if (!context) {
           throw new Error('The list_recent_files tool requires an assistant execution context');
         }
