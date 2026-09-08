@@ -23,7 +23,7 @@ export class ListRecentFilesTool {
         additionalProperties: false,
       },
       strict: true,
-      execute: async (...[, context]: [unknown, RunContext<AssistantExecutionContext>?]) => {
+      execute: async (input: unknown, context?: RunContext<AssistantExecutionContext>) => {
         if (!context) {
           throw new Error('The list_recent_files tool requires an assistant execution context');
         }
