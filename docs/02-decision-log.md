@@ -29,7 +29,7 @@ permissions. No app-only data path.
 
 - Security trimming inherited for free; auditing maps to real users.
 - Content-manager scenarios needing view counts use **search managed properties**
-  (`ViewsLast1Days`, `ViewsLifeTime`, …) instead of app-only reports APIs.
+  (`viewsLast1Days`, `viewsLifetime`, …) instead of app-only reports APIs.
   Accepted tradeoff: these are index-fed and eventually consistent.
 - If a future scenario genuinely requires app-only access, it gets a separate,
   explicitly fenced ADR — not a quiet extension.
@@ -149,9 +149,13 @@ mapping, and tests.
 
 **Consequences.**
 
-- `list_recent_files` is the first implementation: it has no user-settable
-  parameters, passes the authenticated user's access token and current site to
-  `RecentFilesService`, and returns a compact file list to the model.
+- `list_recent_files` has no user-settable parameters. `get_popular_content`
+  optionally accepts either sortable view-count managed property; it defaults to
+  `viewsRecent` (the previous 14 days) and also supports `viewsLifetime`. Both
+  tools pass the authenticated user's access token and current site to their
+  Graph operation services and return compact document and site-page result lists
+  to the model. Search scopes are restricted to `driveItem` documents and
+  `listItem` site pages; other list-item types are excluded.
 - The SDK is the current LLM-loop seam, while Graph operations stay ordinary
   NestJS dependencies reusable by a future registry, MCP adapter, or non-LLM
   endpoint.

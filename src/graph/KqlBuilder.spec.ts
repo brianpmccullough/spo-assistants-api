@@ -1,4 +1,5 @@
 import { DateInterval, KqlBuilder, Operator } from './KqlBuilder';
+import { ContentClass } from './models/content-class';
 
 describe('KqlBuilder', () => {
   // ──────────────────────────────────────────────
@@ -8,7 +9,7 @@ describe('KqlBuilder', () => {
   describe('single property restriction', () => {
     it('should build a text contains restriction', () => {
       const result = new KqlBuilder()
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .build();
 
       expect(result).toBe('contentClass:STS_ListItem_WebPageLibrary');
@@ -271,7 +272,7 @@ describe('KqlBuilder', () => {
     it('should join two restrictions with AND by default', () => {
       const result = new KqlBuilder()
         .where('isDocument', Operator.Contains, 1)
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .build();
 
       expect(result).toBe('isDocument:1 AND contentClass:STS_ListItem_WebPageLibrary');
@@ -280,7 +281,7 @@ describe('KqlBuilder', () => {
     it('should join three restrictions with AND by default', () => {
       const result = new KqlBuilder()
         .where('isDocument', Operator.Contains, 1)
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .where('path', Operator.Contains, 'https://contoso.sharepoint.com')
         .build();
 
@@ -299,7 +300,7 @@ describe('KqlBuilder', () => {
       const result = new KqlBuilder()
         .where('isDocument', Operator.Contains, 1)
         .and()
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .build();
 
       expect(result).toBe('isDocument:1 AND contentClass:STS_ListItem_WebPageLibrary');
@@ -307,9 +308,9 @@ describe('KqlBuilder', () => {
 
     it('should join restrictions with OR', () => {
       const result = new KqlBuilder()
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .or()
-        .where('contentClass', Operator.Contains, 'STS_ListItem_DocumentLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.DocumentLibrary)
         .build();
 
       expect(result).toBe(
@@ -321,9 +322,9 @@ describe('KqlBuilder', () => {
       const result = new KqlBuilder()
         .where('isDocument', Operator.Contains, 1)
         .and()
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .or()
-        .where('contentClass', Operator.Contains, 'STS_ListItem_DocumentLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.DocumentLibrary)
         .build();
 
       expect(result).toBe(
@@ -341,9 +342,9 @@ describe('KqlBuilder', () => {
       const result = new KqlBuilder()
         .group((subBuilder) =>
           subBuilder
-            .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+            .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
             .or()
-            .where('contentClass', Operator.Contains, 'STS_ListItem_DocumentLibrary'),
+            .where('contentClass', Operator.Contains, ContentClass.DocumentLibrary),
         )
         .build();
 
@@ -357,9 +358,9 @@ describe('KqlBuilder', () => {
         .where('isDocument', Operator.Contains, 1)
         .group((subBuilder) =>
           subBuilder
-            .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+            .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
             .or()
-            .where('contentClass', Operator.Contains, 'STS_ListItem_DocumentLibrary'),
+            .where('contentClass', Operator.Contains, ContentClass.DocumentLibrary),
         )
         .build();
 
@@ -434,7 +435,7 @@ describe('KqlBuilder', () => {
         .where('isDocument', Operator.Contains, 1)
         .and()
         .or()
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .build();
 
       expect(result).toBe('isDocument:1 OR contentClass:STS_ListItem_WebPageLibrary');
@@ -496,7 +497,7 @@ describe('KqlBuilder', () => {
     it('should build a typical site pages query', () => {
       const result = new KqlBuilder()
         .where('isDocument', Operator.Contains, 1)
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .where('path', Operator.Contains, 'https://contoso.sharepoint.com/sites/intranet')
         .build();
 
@@ -508,7 +509,7 @@ describe('KqlBuilder', () => {
     it('should build a query for promoted pages modified this month', () => {
       const result = new KqlBuilder()
         .where('promotedState', Operator.Equals, 2)
-        .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+        .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
         .where('modifiedOWSDATE', Operator.Contains, DateInterval.ThisMonth)
         .build();
 
@@ -522,9 +523,9 @@ describe('KqlBuilder', () => {
         .where('isDocument', Operator.Contains, 1)
         .group((subBuilder) =>
           subBuilder
-            .where('contentClass', Operator.Contains, 'STS_ListItem_WebPageLibrary')
+            .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary)
             .or()
-            .where('contentClass', Operator.Contains, 'STS_ListItem_DocumentLibrary'),
+            .where('contentClass', Operator.Contains, ContentClass.DocumentLibrary),
         )
         .where('path', Operator.Contains, 'https://contoso.sharepoint.com/sites/intranet')
         .not('fileExtension', Operator.Contains, 'aspx')

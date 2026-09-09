@@ -2,21 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { RunContext, tool, Tool } from '@openai/agents';
 
 import { ToolNames } from './tool-names';
-import { RecentFilesService } from '../../graph/recent-files.service';
 import type { AssistantExecutionContext } from '../models/assistant-execution-context';
+import { SiteContentService } from '../site-content.service';
 
 /**
- * LLM-facing descriptor only. The Graph request itself belongs to RecentFilesService
+ * LLM-facing descriptor only. The Graph request itself belongs to SiteContentService
  * so it stays usable without the Agents SDK.
  */
 @Injectable()
 export class ListRecentFilesTool {
-  constructor(private readonly recentFilesService: RecentFilesService) {}
+  constructor(private readonly siteContentService: SiteContentService) {}
 
   create(): Tool<AssistantExecutionContext> {
     return tool({
       name: ToolNames.ListRecentFiles,
-      description: 'Lists the most recently modified files on the current SharePoint site.',
+      description:
+        'Lists the most recently modified files and site pages on the current SharePoint site.',
       parameters: {
         type: 'object',
         properties: {},
@@ -32,7 +33,7 @@ export class ListRecentFilesTool {
         }
 
         const { user, sharePoint } = context.context;
-        const files = await this.recentFilesService.listRecentFiles(
+        const files = await this.siteContentService.getRecentContent(
           user.accessToken,
           sharePoint.siteUrl,
         );

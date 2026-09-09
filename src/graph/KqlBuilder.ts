@@ -1,8 +1,8 @@
+import { SearchEntityType } from './models/search-entity-type';
 import {
   ManagedPropertyType,
   QueryableField,
   RangeableField,
-  SearchEntityType,
   SearchField,
   SearchSchema,
   SortableField,

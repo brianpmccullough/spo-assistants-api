@@ -6,6 +6,7 @@ import { AssistantExecutionContext } from './models/assistant-execution-context'
 import { ChatMessage } from './models/chat-message';
 import { ChatRole } from './models/chat-role';
 import { LlmResult } from './models/llm-result';
+import { GetPopularContentTool } from './tools/get-popular-content.tool';
 import { ListRecentFilesTool } from './tools/list-recent-files.tool';
 import { ConfigurationService } from '../configuration/configuration.service';
 
@@ -20,7 +21,11 @@ export class SiteAssistantLlmService {
 
   // TODO: consider some other patterns here to lighten this constructor
   // and perhaps promote testability.
-  constructor(configuration: ConfigurationService, listRecentFilesTool: ListRecentFilesTool) {
+  constructor(
+    configuration: ConfigurationService,
+    getPopularContentTool: GetPopularContentTool,
+    listRecentFilesTool: ListRecentFilesTool,
+  ) {
     const openAIClient = new AzureOpenAI({
       endpoint: configuration.settings.azureOpenAiEndpoint,
       apiVersion: configuration.settings.azureOpenAiApiVersion,
@@ -35,7 +40,7 @@ export class SiteAssistantLlmService {
 
     this.runner = new Runner({ modelProvider, tracingDisabled: true });
 
-    this.tools = [listRecentFilesTool.create()];
+    this.tools = [getPopularContentTool.create(), listRecentFilesTool.create()];
 
     this.agent = new Agent<AssistantExecutionContext>({
       name: SITE_ASSISTANT_NAME,

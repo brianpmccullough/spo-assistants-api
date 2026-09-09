@@ -63,6 +63,10 @@ doc in the same PR.
 - Put client/server DTOs and typed contracts at service boundaries in the owning
   feature's `models/` folder (for example, `assistants/models/` or
   `graph/models/`); keep their tests colocated there.
+- Define SharePoint managed-property names and their queryability, sortability,
+  refinability, retrievability, and types in `graph/SearchSchema.ts`.
+  `QueryableField`, `SortableField`, `RefinableField`, `RetrievableField`, and `RangeableField` are the typed
+  constraints for search and KQL code.
 - Controllers stay thin: validate/transform input (model class + `class-validator`),
   delegate to a service, map the result to an HTTP/SSE response. No business
   logic in controllers.
