@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RunContext, tool, Tool } from '@openai/agents';
 
+import { ToolNames } from './tool-names';
 import { RecentFilesService } from '../../graph/recent-files.service';
 import type { AssistantExecutionContext } from '../models/assistant-execution-context';
 
@@ -14,7 +15,7 @@ export class ListRecentFilesTool {
 
   create(): Tool<AssistantExecutionContext> {
     return tool({
-      name: 'list_recent_files',
+      name: ToolNames.ListRecentFiles,
       description: 'Lists the most recently modified files on the current SharePoint site.',
       parameters: {
         type: 'object',

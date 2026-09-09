@@ -58,7 +58,8 @@ doc in the same PR.
   model-visible schema, collect validated parameters and the run context, then
   delegate to a NestJS service. Keep Graph calls, OBO token exchange, response
   mapping, and business rules in that service; do not embed them in the tool
-  descriptor. Put assistant tool descriptors in `assistants/tools/`. See ADR-011.
+  descriptor. Put assistant tool descriptors in `assistants/tools/`; define
+  their model-visible names once in that folder's `ToolNames` enum. See ADR-011.
 - Put client/server DTOs and typed contracts at service boundaries in the owning
   feature's `models/` folder (for example, `assistants/models/` or
   `graph/models/`); keep their tests colocated there.
