@@ -1,13 +1,13 @@
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
 import { ChatIntegrityService } from './chat-integrity.service';
-import { ChatMessage } from './chat-message';
-import { ChatRequest } from './chat-request';
-import { ChatRole } from './chat-role';
-import { MAX_HISTORY_LENGTH } from './chat-state';
+import { ChatMessage } from './models/chat-message';
+import { ChatRequest } from './models/chat-request';
+import { ChatRole } from './models/chat-role';
+import { MAX_HISTORY_LENGTH } from './models/chat-state';
 import { SiteAssistantLlmService } from './site-assistant-llm.service';
 import { SiteAssistantService } from './site-assistant.service';
-import { AuthenticatedUser } from '../auth/authenticated-user';
+import { AuthenticatedUser } from '../auth/models/authenticated-user';
 
 function buildHistory(length: number): ChatMessage[] {
   return Array.from({ length }, (_, index) => ({

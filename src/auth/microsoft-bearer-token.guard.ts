@@ -8,9 +8,9 @@ import {
 import { Reflector } from '@nestjs/core';
 import { decode, type JwtPayload, verify } from 'jsonwebtoken';
 
-import type { AuthenticatedRequest } from './authenticated-request';
-import type { AuthenticatedUser } from './authenticated-user';
 import { JwksKeyResolver } from './jwks-key-resolver';
+import type { AuthenticatedRequest } from './models/authenticated-request';
+import type { AuthenticatedUser } from './models/authenticated-user';
 import { IS_UNAUTHENTICATED_KEY } from './unauthenticated.decorator';
 import { ConfigurationService } from '../configuration/configuration.service';
 

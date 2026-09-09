@@ -1,8 +1,8 @@
 import { Controller, Get, Req } from '@nestjs/common';
 
-import type { AuthenticatedRequest } from '../auth/authenticated-request';
-import type { CurrentUser } from '../graph/current-user';
+import type { AuthenticatedRequest } from '../auth/models/authenticated-request';
 import { GraphClient } from '../graph/graph-client';
+import type { CurrentUser } from '../graph/models/current-user';
 
 @Controller('me')
 export class MeController {

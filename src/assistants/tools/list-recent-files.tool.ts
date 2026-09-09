@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { RunContext, tool, Tool } from '@openai/agents';
 
-import { AssistantExecutionContext } from './assistant-execution-context';
-import { RecentFilesService } from '../graph/recent-files.service';
+import { RecentFilesService } from '../../graph/recent-files.service';
+import type { AssistantExecutionContext } from '../models/assistant-execution-context';
 
 /**
  * LLM-facing descriptor only. The Graph request itself belongs to RecentFilesService

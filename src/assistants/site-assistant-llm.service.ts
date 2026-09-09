@@ -2,21 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Agent, AgentInputItem, OpenAIProvider, RunContext, Runner, Tool } from '@openai/agents';
 import { AzureOpenAI } from 'openai';
 
-import { AssistantExecutionContext } from './assistant-execution-context';
-import { ChatMessage } from './chat-message';
-import { ChatRole } from './chat-role';
-import { ListRecentFilesTool } from './list-recent-files.tool';
+import { AssistantExecutionContext } from './models/assistant-execution-context';
+import { ChatMessage } from './models/chat-message';
+import { ChatRole } from './models/chat-role';
+import { LlmResult } from './models/llm-result';
+import { ListRecentFilesTool } from './tools/list-recent-files.tool';
 import { ConfigurationService } from '../configuration/configuration.service';
-
-export interface TokenUsage {
-  inputTokens: number;
-  outputTokens: number;
-  totalTokens: number;
-}
-export interface LlmResult {
-  content: string;
-  tokenUsage: TokenUsage;
-}
 
 const SITE_ASSISTANT_NAME: string = 'Site Assistant';
 

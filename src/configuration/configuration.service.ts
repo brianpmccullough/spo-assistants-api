@@ -2,22 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 import type { EnvironmentVariables } from './environment-variables.schema';
-
-export interface Settings {
-  readonly azureAdApiClientId: string;
-  readonly azureAdTenantId: string;
-  readonly azureOpenAiApiVersion: string;
-  readonly azureOpenAiDeployment: string;
-  readonly azureOpenAiEndpoint: string;
-  readonly azureOpenAiMaxOutputTokens: number;
-  readonly port: number;
-  readonly corsAllowedOrigins: string[];
-}
-
-export interface Secrets {
-  readonly azureAdClientSecret: string;
-  readonly azureOpenAiApiKey: string;
-}
+import type { Secrets } from './models/secrets';
+import type { Settings } from './models/settings';
 
 @Injectable()
 export class ConfigurationService {

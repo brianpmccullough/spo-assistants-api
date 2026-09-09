@@ -4,8 +4,8 @@ import { type ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { sign } from 'jsonwebtoken';
 
-import type { AuthenticatedRequest } from './authenticated-request';
 import { MicrosoftBearerTokenGuard } from './microsoft-bearer-token.guard';
+import type { AuthenticatedRequest } from './models/authenticated-request';
 import { Unauthenticated } from './unauthenticated.decorator';
 import type { ConfigurationService } from '../configuration/configuration.service';
 

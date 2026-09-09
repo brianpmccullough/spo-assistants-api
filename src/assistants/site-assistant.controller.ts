@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 
-import type { AssistantConfiguration } from './assistant-configuration';
-import { ChatRequest } from './chat-request';
-import type { ChatResponse } from './chat-response';
+import type { AssistantConfiguration } from './models/assistant-configuration';
+import { ChatRequest } from './models/chat-request';
+import type { ChatResponse } from './models/chat-response';
 import { SiteAssistantService } from './site-assistant.service';
-import type { AuthenticatedRequest } from '../auth/authenticated-request';
+import type { AuthenticatedRequest } from '../auth/models/authenticated-request';
 
 @Controller('assistants/site-assistant')
 export class SiteAssistantController {

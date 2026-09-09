@@ -2,8 +2,8 @@ import { ConfidentialClientApplication } from '@azure/msal-node';
 import type { User as GraphUser } from '@microsoft/microsoft-graph-types';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
-import type { CurrentUser } from './current-user';
 import { GraphScopes } from './graph-scopes';
+import type { CurrentUser } from './models/current-user';
 import { ConfigurationService } from '../configuration/configuration.service';
 
 const GRAPH_BASE_URL = 'https://graph.microsoft.com/v1.0';

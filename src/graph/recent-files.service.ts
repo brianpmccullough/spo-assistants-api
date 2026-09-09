@@ -2,15 +2,10 @@ import { Injectable } from '@nestjs/common';
 
 import { GraphClientFactory } from './graph-client-factory';
 import { GraphTokenService } from './graph-token.service';
-import { MicrosoftSearchHit, MicrosoftSearchQueryResponse } from './microsoft-search.types';
+import { MicrosoftSearchHit, MicrosoftSearchQueryResponse } from './models/microsoft-search.types';
+import { RecentFile } from './models/recent-file';
 
 export const DEFAULT_RECENT_FILES_LIMIT = 5;
-
-export interface RecentFile {
-  readonly name: string;
-  readonly webUrl: string;
-  readonly lastModifiedDateTime?: string;
-}
 
 interface DriveItemSearchResource {
   readonly name?: string;

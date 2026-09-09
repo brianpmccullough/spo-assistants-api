@@ -3,8 +3,8 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
-import { ChatMessage } from './chat-message';
-import { AuthenticatedUser } from '../auth/authenticated-user';
+import { ChatMessage } from './models/chat-message';
+import { AuthenticatedUser } from '../auth/models/authenticated-user';
 
 @Injectable()
 export class ChatIntegrityService {

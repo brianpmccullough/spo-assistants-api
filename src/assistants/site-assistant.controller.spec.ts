@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 
-import { ChatRequest } from './chat-request';
-import type { ChatResponse } from './chat-response';
-import { ChatRole } from './chat-role';
+import { ChatRequest } from './models/chat-request';
+import type { ChatResponse } from './models/chat-response';
+import { ChatRole } from './models/chat-role';
 import { SiteAssistantController } from './site-assistant.controller';
 import { SiteAssistantService } from './site-assistant.service';
-import type { AuthenticatedRequest } from '../auth/authenticated-request';
-import type { AuthenticatedUser } from '../auth/authenticated-user';
+import type { AuthenticatedRequest } from '../auth/models/authenticated-request';
+import type { AuthenticatedUser } from '../auth/models/authenticated-user';
 
 describe('SiteAssistantController', () => {
   let controller: SiteAssistantController;

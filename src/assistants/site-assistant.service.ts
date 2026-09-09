@@ -2,16 +2,16 @@ import { randomUUID } from 'crypto';
 
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 
-import type { AssistantConfiguration } from './assistant-configuration';
-import { AssistantExecutionContext } from './assistant-execution-context';
 import { ChatIntegrityService } from './chat-integrity.service';
-import { ChatMessage } from './chat-message';
-import { ChatRequest } from './chat-request';
-import { ChatResponse } from './chat-response';
-import { ChatRole } from './chat-role';
-import { MAX_HISTORY_LENGTH } from './chat-state';
+import type { AssistantConfiguration } from './models/assistant-configuration';
+import { AssistantExecutionContext } from './models/assistant-execution-context';
+import { ChatMessage } from './models/chat-message';
+import { ChatRequest } from './models/chat-request';
+import { ChatResponse } from './models/chat-response';
+import { ChatRole } from './models/chat-role';
+import { MAX_HISTORY_LENGTH } from './models/chat-state';
 import { SiteAssistantLlmService } from './site-assistant-llm.service';
-import { AuthenticatedUser } from '../auth/authenticated-user';
+import { AuthenticatedUser } from '../auth/models/authenticated-user';
 
 @Injectable()
 export class SiteAssistantService {

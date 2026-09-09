@@ -58,7 +58,10 @@ doc in the same PR.
   model-visible schema, collect validated parameters and the run context, then
   delegate to a NestJS service. Keep Graph calls, OBO token exchange, response
   mapping, and business rules in that service; do not embed them in the tool
-  descriptor. See ADR-011.
+  descriptor. Put assistant tool descriptors in `assistants/tools/`. See ADR-011.
+- Put client/server DTOs and typed contracts at service boundaries in the owning
+  feature's `models/` folder (for example, `assistants/models/` or
+  `graph/models/`); keep their tests colocated there.
 - Controllers stay thin: validate/transform input (model class + `class-validator`),
   delegate to a service, map the result to an HTTP/SSE response. No business
   logic in controllers.
