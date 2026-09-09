@@ -45,7 +45,7 @@ export class GetPopularContentTool {
         const viewPeriod = this.parseViewPeriod(input);
         const { user, sharePoint } = context.context;
         const content = await this.siteContentService.getPopularContent(
-          user.accessToken,
+          user,
           sharePoint.siteUrl,
           viewPeriod,
         );

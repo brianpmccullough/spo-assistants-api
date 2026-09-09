@@ -2,12 +2,11 @@ import { Module } from '@nestjs/common';
 
 import { GraphClient } from './graph-client';
 import { GraphClientFactory } from './graph-client-factory';
-import { GraphTokenService } from './graph-token.service';
-import { ConfigurationModule } from '../configuration/configuration.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [ConfigurationModule],
-  providers: [GraphClient, GraphClientFactory, GraphTokenService],
-  exports: [GraphClient, GraphClientFactory, GraphTokenService],
+  imports: [AuthModule],
+  providers: [GraphClient, GraphClientFactory],
+  exports: [GraphClient, GraphClientFactory],
 })
 export class GraphModule {}

@@ -33,10 +33,7 @@ export class FindStaleContentTool {
         }
 
         const { user, sharePoint } = context.context;
-        const content = await this.siteContentService.getStaleContent(
-          user.accessToken,
-          sharePoint.siteUrl,
-        );
+        const content = await this.siteContentService.getStaleContent(user, sharePoint.siteUrl);
         return JSON.stringify(content);
       },
     });

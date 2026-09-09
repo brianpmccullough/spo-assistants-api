@@ -33,10 +33,7 @@ export class ListRecentFilesTool {
         }
 
         const { user, sharePoint } = context.context;
-        const files = await this.siteContentService.getRecentContent(
-          user.accessToken,
-          sharePoint.siteUrl,
-        );
+        const files = await this.siteContentService.getRecentContent(user, sharePoint.siteUrl);
         return JSON.stringify(files);
       },
     });

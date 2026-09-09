@@ -1,9 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadGatewayException,
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { GraphClientFactory } from '../graph/graph-client-factory';
-import { GraphTokenService } from '../graph/graph-token.service';
+import { GraphScopes } from '../graph/graph-scopes';
 import { KqlBuilder, Operator } from '../graph/KqlBuilder';
+import type { SharePointListItemAllFields } from './models/sharepoint-list-item-all-fields';
 import { PopularContentViewPeriod, SiteContentItem } from './models/site-content-item';
+import type { SitePageContent } from './models/site-page-content';
+import type { AuthenticatedUser } from '../auth/models/authenticated-user';
+import { OboTokenService } from '../auth/obo-token.service';
 import { ContentClass } from '../graph/models/content-class';
 import { SearchEntityType } from '../graph/models/search-entity-type';
 import {
@@ -43,34 +52,34 @@ interface SiteContentSearchOptions {
 @Injectable()
 export class SiteContentService {
   constructor(
-    private readonly graphTokenService: GraphTokenService,
+    private readonly oboTokenService: OboTokenService,
     private readonly graphClientFactory: GraphClientFactory,
   ) {}
 
-  async getRecentContent(userAccessToken: string, siteUrl: string): Promise<SiteContentItem[]> {
-    return this.searchContent(userAccessToken, siteUrl, {
+  async getRecentContent(user: AuthenticatedUser, siteUrl: string): Promise<SiteContentItem[]> {
+    return this.searchContent(user, siteUrl, {
       sortField: 'lastModifiedTimeForRetention',
       isDescending: true,
     });
   }
 
   async getPopularContent(
-    userAccessToken: string,
+    user: AuthenticatedUser,
     siteUrl: string,
     viewPeriod: PopularContentViewPeriod = DEFAULT_POPULAR_CONTENT_VIEW_PERIOD,
   ): Promise<SiteContentItem[]> {
-    return this.searchContent(userAccessToken, siteUrl, {
+    return this.searchContent(user, siteUrl, {
       sortField: viewPeriod,
       isDescending: true,
       viewPeriod,
     });
   }
 
-  async getStaleContent(userAccessToken: string, siteUrl: string): Promise<SiteContentItem[]> {
+  async getStaleContent(user: AuthenticatedUser, siteUrl: string): Promise<SiteContentItem[]> {
     const staleBefore = new Date();
     staleBefore.setUTCFullYear(staleBefore.getUTCFullYear() - STALE_CONTENT_AGE_YEARS);
 
-    return this.searchContent(userAccessToken, siteUrl, {
+    return this.searchContent(user, siteUrl, {
       sortField: 'lastModifiedTimeForRetention',
       isDescending: false,
       viewPeriod: PopularContentViewPeriod.Lifetime,
@@ -87,12 +96,45 @@ export class SiteContentService {
     });
   }
 
+  async getPageContent(
+    user: AuthenticatedUser,
+    siteUrl: string,
+    pageUrl: string,
+  ): Promise<SitePageContent> {
+    const { site, page } = this.parseCurrentPageUrl(siteUrl, pageUrl);
+    const sharePointAccessToken = await this.oboTokenService.exchange(
+      user.accessToken,
+      `${site.origin}/.default`,
+    );
+    const response = await fetch(this.buildListItemAllFieldsUrl(site, page), {
+      headers: {
+        Accept: 'application/json;odata=nometadata',
+        Authorization: `Bearer ${sharePointAccessToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new BadGatewayException('Failed to retrieve the current page content from SharePoint');
+    }
+
+    const { CanvasContent1: canvasContent1 } =
+      (await response.json()) as SharePointListItemAllFields;
+    if (canvasContent1 === undefined) {
+      throw new NotFoundException('The current page does not have canvas content');
+    }
+
+    return { canvasContent1 };
+  }
+
   private async searchContent(
-    userAccessToken: string,
+    user: AuthenticatedUser,
     siteUrl: string,
     options: SiteContentSearchOptions,
   ): Promise<SiteContentItem[]> {
-    const graphAccessToken = await this.graphTokenService.exchangeForGraphToken(userAccessToken);
+    const graphAccessToken = await this.oboTokenService.exchange(
+      user.accessToken,
+      GraphScopes.Default,
+    );
     const graphClient = this.graphClientFactory.create(graphAccessToken);
     const response = (await graphClient.api('/search/query').post({
       requests: [
@@ -131,6 +173,39 @@ export class SiteContentService {
           .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary),
       );
     return (configureQuery?.(query) ?? query).build();
+  }
+
+  private parseCurrentPageUrl(siteUrl: string, pageUrl: string): { site: URL; page: URL } {
+    let site: URL;
+    let page: URL;
+    try {
+      site = new URL(siteUrl);
+      page = new URL(pageUrl);
+    } catch {
+      throw new BadRequestException('The current page URL must be a valid URL');
+    }
+
+    const normalizedSitePath = site.pathname.endsWith('/')
+      ? site.pathname.slice(0, -1)
+      : site.pathname;
+    if (
+      site.origin !== page.origin ||
+      (normalizedSitePath !== '' && !page.pathname.startsWith(`${normalizedSitePath}/`))
+    ) {
+      throw new BadRequestException('The current page must belong to the current SharePoint site');
+    }
+
+    return { site, page };
+  }
+
+  private buildListItemAllFieldsUrl(site: URL, page: URL): string {
+    const sitePath = site.pathname.endsWith('/') ? site.pathname.slice(0, -1) : site.pathname;
+    const serverRelativePagePath = decodeURIComponent(page.pathname).replaceAll("'", "''");
+    const requestUrl = new URL(
+      `${site.origin}${sitePath}/_api/web/GetFileByServerRelativeUrl('${serverRelativePagePath}')/ListItemAllFields`,
+    );
+    requestUrl.searchParams.set('$select', 'CanvasContent1');
+    return requestUrl.toString();
   }
 
   private toSiteContentItem(

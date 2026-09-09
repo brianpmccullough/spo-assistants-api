@@ -1,13 +1,12 @@
 import { ConfidentialClientApplication, OnBehalfOfRequest } from '@azure/msal-node';
 import { Injectable } from '@nestjs/common';
 
-import { GraphScopes } from './graph-scopes';
 import { ConfigurationService } from '../configuration/configuration.service';
 
+/** Acquires delegated access tokens for downstream Microsoft resources. */
 @Injectable()
-export class GraphTokenService {
+export class OboTokenService {
   private readonly client: ConfidentialClientApplication;
-  private readonly scopes: GraphScopes[];
 
   constructor(configurationService: ConfigurationService) {
     const { azureAdApiClientId, azureAdTenantId } = configurationService.settings;
@@ -20,22 +19,17 @@ export class GraphTokenService {
         authority: `https://login.microsoftonline.com/${azureAdTenantId}`,
       },
     });
-
-    this.scopes = [GraphScopes.Default];
   }
 
-  async exchangeForGraphToken(
-    accessToken: string,
-    scopes: GraphScopes[] = this.scopes,
-  ): Promise<string> {
+  async exchange(userAccessToken: string, scope: string): Promise<string> {
     const request: OnBehalfOfRequest = {
-      oboAssertion: accessToken,
-      scopes,
+      oboAssertion: userAccessToken,
+      scopes: [scope],
     };
 
     const result = await this.client.acquireTokenOnBehalfOf(request);
-    if (!result) {
-      throw new Error('Unexpected result obtaining OnBehalfOf token.');
+    if (!result?.accessToken) {
+      throw new Error('Unexpected result obtaining an on-behalf-of token.');
     }
 
     return result.accessToken;

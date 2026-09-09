@@ -21,7 +21,7 @@ originals are in git history at `02a3bd7`. The append-only rule applies from her
 usage signals) on behalf of users at 100K+ scale. App-only access would require
 us to re-implement permission trimming and creates data-leakage risk.
 
-**Decision.** All Graph/Search calls execute on-behalf-of the signed-in user:
+**Decision.** All Graph, Search, and SharePoint REST calls execute on-behalf-of the signed-in user:
 SPFx → API (EntraID bearer via `AadHttpClient`) → OBO exchange → Graph delegated
 permissions. No app-only data path.
 
@@ -159,6 +159,9 @@ mapping, and tests.
 - `find_stale_content` has no user-settable parameters. It finds the same
   document and site-page scope where `lastModifiedTimeForRetention` is at least
   two years old and `viewsLifetime` is either zero or absent.
+- `get_page_content` accepts an optional page URL; when omitted, it
+  uses the current page URL from the execution context. It calls the SharePoint
+  REST `ListItemAllFields` endpoint to return that page's `CanvasContent1` field.
 - The SDK is the current LLM-loop seam, while Graph operations stay ordinary
   NestJS dependencies reusable by a future registry, MCP adapter, or non-LLM
   endpoint.

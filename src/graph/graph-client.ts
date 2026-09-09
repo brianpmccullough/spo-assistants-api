@@ -1,29 +1,15 @@
-import { ConfidentialClientApplication } from '@azure/msal-node';
 import type { User as GraphUser } from '@microsoft/microsoft-graph-types';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 
 import { GraphScopes } from './graph-scopes';
 import type { CurrentUser } from './models/current-user';
-import { ConfigurationService } from '../configuration/configuration.service';
+import { OboTokenService } from '../auth/obo-token.service';
 
 const GRAPH_BASE_URL = 'https://graph.microsoft.com/v1.0';
 
 @Injectable()
 export class GraphClient {
-  private readonly confidentialClientApplication: ConfidentialClientApplication;
-
-  constructor(configurationService: ConfigurationService) {
-    const { azureAdApiClientId, azureAdTenantId } = configurationService.settings;
-    const { azureAdClientSecret } = configurationService.secrets;
-
-    this.confidentialClientApplication = new ConfidentialClientApplication({
-      auth: {
-        clientId: azureAdApiClientId,
-        authority: `https://login.microsoftonline.com/${azureAdTenantId}`,
-        clientSecret: azureAdClientSecret,
-      },
-    });
-  }
+  constructor(private readonly oboTokenService: OboTokenService) {}
 
   async getCurrentUser(
     userAccessToken: string,
@@ -51,16 +37,12 @@ export class GraphClient {
   }
 
   private async acquireOboToken(userAccessToken: string, scopes: string[]): Promise<string> {
-    const result = await this.confidentialClientApplication.acquireTokenOnBehalfOf({
-      oboAssertion: userAccessToken,
-      scopes,
-    });
-
-    if (!result?.accessToken) {
+    if (scopes.length !== 1) {
       throw new UnauthorizedException(
-        'Failed to acquire an on-behalf-of token for Microsoft Graph',
+        'Microsoft Graph requests must use exactly one delegated resource scope',
       );
     }
-    return result.accessToken;
+
+    return this.oboTokenService.exchange(userAccessToken, scopes[0]);
   }
 }

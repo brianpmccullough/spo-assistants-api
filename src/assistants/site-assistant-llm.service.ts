@@ -7,6 +7,7 @@ import { ChatMessage } from './models/chat-message';
 import { ChatRole } from './models/chat-role';
 import { LlmResult } from './models/llm-result';
 import { FindStaleContentTool } from './tools/find-stale-content.tool';
+import { GetPageContentTool } from './tools/get-page-content.tool';
 import { GetPopularContentTool } from './tools/get-popular-content.tool';
 import { ListRecentFilesTool } from './tools/list-recent-files.tool';
 import { ConfigurationService } from '../configuration/configuration.service';
@@ -25,6 +26,7 @@ export class SiteAssistantLlmService {
   constructor(
     configuration: ConfigurationService,
     findStaleContentTool: FindStaleContentTool,
+    getPageContentTool: GetPageContentTool,
     getPopularContentTool: GetPopularContentTool,
     listRecentFilesTool: ListRecentFilesTool,
   ) {
@@ -44,6 +46,7 @@ export class SiteAssistantLlmService {
 
     this.tools = [
       findStaleContentTool.create(),
+      getPageContentTool.create(),
       getPopularContentTool.create(),
       listRecentFilesTool.create(),
     ];

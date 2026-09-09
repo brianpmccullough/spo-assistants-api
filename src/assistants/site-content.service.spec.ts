@@ -1,4 +1,6 @@
-import type { GraphTokenService } from '../graph/graph-token.service';
+import type { AuthenticatedUser } from '../auth/models/authenticated-user';
+import type { OboTokenService } from '../auth/obo-token.service';
+import { GraphScopes } from '../graph/graph-scopes';
 import { PopularContentViewPeriod } from './models/site-content-item';
 import {
   DEFAULT_SITE_CONTENT_LIMIT,
@@ -8,25 +10,29 @@ import {
 import { SearchEntityType } from '../graph/models/search-entity-type';
 
 describe('SiteContentService', () => {
-  const userAccessToken = 'user-access-token';
+  const user: AuthenticatedUser = { id: 'user-id', accessToken: 'user-access-token' };
   const graphAccessToken = 'graph-access-token';
   const siteUrl = 'https://contoso.sharepoint.com/sites/team';
 
   let post: jest.Mock;
-  let graphTokenService: { exchangeForGraphToken: jest.Mock };
+  let oboTokenService: { exchange: jest.Mock };
   let graphClientFactory: { create: jest.Mock };
   let service: SiteContentService;
 
   beforeEach(() => {
     post = jest.fn();
-    graphTokenService = { exchangeForGraphToken: jest.fn().mockResolvedValue(graphAccessToken) };
+    oboTokenService = { exchange: jest.fn().mockResolvedValue(graphAccessToken) };
     graphClientFactory = {
       create: jest.fn().mockReturnValue({ api: jest.fn().mockReturnValue({ post }) }),
     };
     service = new SiteContentService(
-      graphTokenService as unknown as GraphTokenService,
+      oboTokenService as unknown as OboTokenService,
       graphClientFactory,
     );
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('returns recent content from driveItem fields', async () => {
@@ -56,7 +62,7 @@ describe('SiteContentService', () => {
       ],
     });
 
-    await expect(service.getRecentContent(userAccessToken, siteUrl)).resolves.toEqual([
+    await expect(service.getRecentContent(user, siteUrl)).resolves.toEqual([
       {
         name: 'Quarterly report.docx',
         webUrl: 'https://contoso.sharepoint.com/sites/team/Shared%20Documents/report.docx',
@@ -64,7 +70,7 @@ describe('SiteContentService', () => {
       },
     ]);
 
-    expect(graphTokenService.exchangeForGraphToken).toHaveBeenCalledWith(userAccessToken);
+    expect(oboTokenService.exchange).toHaveBeenCalledWith(user.accessToken, GraphScopes.Default);
     expect(graphClientFactory.create).toHaveBeenCalledWith(graphAccessToken);
     expect(post).toHaveBeenCalledWith({
       requests: [
@@ -109,7 +115,7 @@ describe('SiteContentService', () => {
       ],
     });
 
-    await expect(service.getPopularContent(userAccessToken, siteUrl)).resolves.toEqual([
+    await expect(service.getPopularContent(user, siteUrl)).resolves.toEqual([
       {
         name: 'Frequently used guide',
         webUrl:
@@ -148,7 +154,7 @@ describe('SiteContentService', () => {
     jest.useFakeTimers().setSystemTime(now);
     post.mockResolvedValue({ value: [] });
 
-    await expect(service.getStaleContent(userAccessToken, siteUrl)).resolves.toEqual([]);
+    await expect(service.getStaleContent(user, siteUrl)).resolves.toEqual([]);
 
     expect(post).toHaveBeenCalledWith({
       requests: [
@@ -171,5 +177,46 @@ describe('SiteContentService', () => {
     });
 
     jest.useRealTimers();
+  });
+
+  it('returns the current page canvas from SharePoint ListItemAllFields', async () => {
+    const fetchMock = jest.spyOn(global, 'fetch').mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockResolvedValue({ CanvasContent1: '<div>Welcome</div>' }),
+    } as unknown as Response);
+    const pageUrl = 'https://contoso.sharepoint.com/sites/team/SitePages/Welcome%20page.aspx';
+
+    await expect(service.getPageContent(user, siteUrl, pageUrl)).resolves.toEqual({
+      canvasContent1: '<div>Welcome</div>',
+    });
+
+    expect(oboTokenService.exchange).toHaveBeenCalledWith(
+      user.accessToken,
+      'https://contoso.sharepoint.com/.default',
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://contoso.sharepoint.com/sites/team/_api/web/GetFileByServerRelativeUrl('/sites/team/SitePages/Welcome%20page.aspx')/ListItemAllFields?%24select=CanvasContent1",
+      {
+        headers: {
+          Accept: 'application/json;odata=nometadata',
+          Authorization: `Bearer ${graphAccessToken}`,
+        },
+      },
+    );
+  });
+
+  it('rejects a page outside the current site without making a SharePoint request', async () => {
+    const fetchMock = jest.spyOn(global, 'fetch');
+
+    await expect(
+      service.getPageContent(
+        user,
+        siteUrl,
+        'https://contoso.sharepoint.com/sites/other/SitePages/Welcome.aspx',
+      ),
+    ).rejects.toThrow('The current page must belong to the current SharePoint site');
+
+    expect(oboTokenService.exchange).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });

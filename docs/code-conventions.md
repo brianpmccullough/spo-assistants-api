@@ -56,7 +56,7 @@ doc in the same PR.
   to build such a seam, not a standing decision that any particular seam exists.
 - Agents SDK function tools are lightweight injectable descriptors: define the
   model-visible schema, collect validated parameters and the run context, then
-  delegate to a NestJS service. Keep Graph calls, OBO token exchange, response
+  delegate to a NestJS service. Keep Graph or SharePoint REST calls, OBO token exchange, response
   mapping, and business rules in that service; do not embed them in the tool
   descriptor. Put assistant tool descriptors in `assistants/tools/`; define
   their model-visible names once in that folder's `ToolNames` enum. See ADR-011.
