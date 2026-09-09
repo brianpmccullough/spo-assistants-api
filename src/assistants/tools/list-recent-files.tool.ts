@@ -26,7 +26,9 @@ export class ListRecentFilesTool {
       strict: true,
       execute: async (input: unknown, context?: RunContext<AssistantExecutionContext>) => {
         if (!context) {
-          throw new Error('The list_recent_files tool requires an assistant execution context');
+          throw new Error(
+            `The ${ToolNames.ListRecentFiles} tool requires an assistant execution context`,
+          );
         }
 
         const { user, sharePoint } = context.context;
