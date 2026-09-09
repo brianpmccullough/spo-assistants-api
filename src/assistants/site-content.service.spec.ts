@@ -1,6 +1,10 @@
 import type { GraphTokenService } from '../graph/graph-token.service';
 import { PopularContentViewPeriod } from './models/site-content-item';
-import { DEFAULT_SITE_CONTENT_LIMIT, SiteContentService } from './site-content.service';
+import {
+  DEFAULT_SITE_CONTENT_LIMIT,
+  SiteContentService,
+  STALE_CONTENT_AGE_YEARS,
+} from './site-content.service';
 import { SearchEntityType } from '../graph/models/search-entity-type';
 
 describe('SiteContentService', () => {
@@ -135,5 +139,37 @@ describe('SiteContentService', () => {
         },
       ],
     });
+  });
+
+  it('returns content at least two years old without lifetime views', async () => {
+    const now = new Date('2026-09-09T12:00:00.000Z');
+    const staleBefore = new Date(now);
+    staleBefore.setUTCFullYear(staleBefore.getUTCFullYear() - STALE_CONTENT_AGE_YEARS);
+    jest.useFakeTimers().setSystemTime(now);
+    post.mockResolvedValue({ value: [] });
+
+    await expect(service.getStaleContent(userAccessToken, siteUrl)).resolves.toEqual([]);
+
+    expect(post).toHaveBeenCalledWith({
+      requests: [
+        {
+          entityTypes: [SearchEntityType.DriveItem, SearchEntityType.ListItem],
+          from: 0,
+          size: DEFAULT_SITE_CONTENT_LIMIT,
+          query: {
+            queryString: `path:https://contoso.sharepoint.com/sites/team/* AND (contentClass:STS_ListItem_DocumentLibrary OR contentClass:STS_ListItem_WebPageLibrary) AND lastModifiedTimeForRetention<=${staleBefore.toISOString()} AND (viewsLifetime=0 OR NOT viewsLifetime:*)`,
+          },
+          fields: [
+            'title',
+            'defaultEncodingURL',
+            'lastModifiedTimeForRetention',
+            PopularContentViewPeriod.Lifetime,
+          ],
+          sortProperties: [{ name: 'lastModifiedTimeForRetention', isDescending: false }],
+        },
+      ],
+    });
+
+    jest.useRealTimers();
   });
 });

@@ -264,6 +264,14 @@ describe('KqlBuilder', () => {
     });
   });
 
+  describe('isEmpty', () => {
+    it('should build a property-empty restriction', () => {
+      const result = new KqlBuilder().isEmpty('viewsLifetime').build();
+
+      expect(result).toBe('NOT viewsLifetime:*');
+    });
+  });
+
   // ──────────────────────────────────────────────
   // Implicit AND between restrictions
   // ──────────────────────────────────────────────

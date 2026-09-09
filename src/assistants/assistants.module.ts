@@ -5,6 +5,7 @@ import { SiteAssistantLlmService } from './site-assistant-llm.service';
 import { SiteAssistantController } from './site-assistant.controller';
 import { SiteAssistantService } from './site-assistant.service';
 import { SiteContentService } from './site-content.service';
+import { FindStaleContentTool } from './tools/find-stale-content.tool';
 import { GetPopularContentTool } from './tools/get-popular-content.tool';
 import { ListRecentFilesTool } from './tools/list-recent-files.tool';
 import { ConfigurationModule } from '../configuration/configuration.module';
@@ -15,6 +16,7 @@ import { GraphModule } from '../graph/graph.module';
   controllers: [SiteAssistantController],
   providers: [
     ChatIntegrityService,
+    FindStaleContentTool,
     GetPopularContentTool,
     ListRecentFilesTool,
     SiteAssistantLlmService,

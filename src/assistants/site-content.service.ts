@@ -16,6 +16,7 @@ import type { RetrievableField } from '../graph/SearchSchema';
 
 export const DEFAULT_SITE_CONTENT_LIMIT = 10;
 export const DEFAULT_POPULAR_CONTENT_VIEW_PERIOD = PopularContentViewPeriod.Recent;
+export const STALE_CONTENT_AGE_YEARS = 2;
 
 const SITE_CONTENT_FIELDS = [
   'title',
@@ -27,6 +28,13 @@ type SiteContentField = (typeof SITE_CONTENT_FIELDS)[number] | PopularContentVie
 
 type SiteContentSearchResource =
   ListItemSearchResource<SiteContentField> | DriveItemSearchResource<SiteContentField>;
+
+interface SiteContentSearchOptions {
+  readonly sortField: 'lastModifiedTimeForRetention' | PopularContentViewPeriod;
+  readonly isDescending: boolean;
+  readonly viewPeriod?: PopularContentViewPeriod;
+  readonly configureQuery?: (query: KqlBuilder) => KqlBuilder;
+}
 
 /**
  * Reads documents and site pages through Microsoft Search. It normalizes the
@@ -40,7 +48,10 @@ export class SiteContentService {
   ) {}
 
   async getRecentContent(userAccessToken: string, siteUrl: string): Promise<SiteContentItem[]> {
-    return this.searchContent(userAccessToken, siteUrl, 'lastModifiedTimeForRetention');
+    return this.searchContent(userAccessToken, siteUrl, {
+      sortField: 'lastModifiedTimeForRetention',
+      isDescending: true,
+    });
   }
 
   async getPopularContent(
@@ -48,13 +59,38 @@ export class SiteContentService {
     siteUrl: string,
     viewPeriod: PopularContentViewPeriod = DEFAULT_POPULAR_CONTENT_VIEW_PERIOD,
   ): Promise<SiteContentItem[]> {
-    return this.searchContent(userAccessToken, siteUrl, viewPeriod);
+    return this.searchContent(userAccessToken, siteUrl, {
+      sortField: viewPeriod,
+      isDescending: true,
+      viewPeriod,
+    });
+  }
+
+  async getStaleContent(userAccessToken: string, siteUrl: string): Promise<SiteContentItem[]> {
+    const staleBefore = new Date();
+    staleBefore.setUTCFullYear(staleBefore.getUTCFullYear() - STALE_CONTENT_AGE_YEARS);
+
+    return this.searchContent(userAccessToken, siteUrl, {
+      sortField: 'lastModifiedTimeForRetention',
+      isDescending: false,
+      viewPeriod: PopularContentViewPeriod.Lifetime,
+      configureQuery: (query) =>
+        query
+          .where(
+            'lastModifiedTimeForRetention',
+            Operator.LessThanOrEqual,
+            staleBefore.toISOString(),
+          )
+          .group((subBuilder) =>
+            subBuilder.where('viewsLifetime', Operator.Equals, 0).or().isEmpty('viewsLifetime'),
+          ),
+    });
   }
 
   private async searchContent(
     userAccessToken: string,
     siteUrl: string,
-    sortField: 'lastModifiedTimeForRetention' | PopularContentViewPeriod,
+    options: SiteContentSearchOptions,
   ): Promise<SiteContentItem[]> {
     const graphAccessToken = await this.graphTokenService.exchangeForGraphToken(userAccessToken);
     const graphClient = this.graphClientFactory.create(graphAccessToken);
@@ -64,40 +100,37 @@ export class SiteContentService {
           entityTypes: [SearchEntityType.DriveItem, SearchEntityType.ListItem],
           from: 0,
           size: DEFAULT_SITE_CONTENT_LIMIT,
-          query: { queryString: this.buildSiteContentQuery(siteUrl) },
+          query: { queryString: this.buildSiteContentQuery(siteUrl, options.configureQuery) },
           fields:
-            sortField === 'lastModifiedTimeForRetention'
+            options.viewPeriod === undefined
               ? SITE_CONTENT_FIELDS
-              : [...SITE_CONTENT_FIELDS, sortField],
-          sortProperties: [{ name: sortField, isDescending: true }],
+              : [...SITE_CONTENT_FIELDS, options.viewPeriod],
+          sortProperties: [{ name: options.sortField, isDescending: options.isDescending }],
         },
       ],
     })) as MicrosoftSearchQueryResponse<SiteContentSearchResource>;
 
-    const viewPeriod = this.isPopularContentViewPeriod(sortField) ? sortField : undefined;
+    const viewPeriod = options.viewPeriod;
     return (response.value ?? [])
       .flatMap((searchResponse) => searchResponse.hitsContainers ?? [])
       .flatMap((container) => container.hits ?? [])
       .flatMap((hit) => this.toSiteContentItem(hit, viewPeriod));
   }
 
-  private isPopularContentViewPeriod(
-    sortField: 'lastModifiedTimeForRetention' | PopularContentViewPeriod,
-  ): sortField is PopularContentViewPeriod {
-    return Object.values(PopularContentViewPeriod).includes(sortField as PopularContentViewPeriod);
-  }
-
-  private buildSiteContentQuery(siteUrl: string): string {
+  private buildSiteContentQuery(
+    siteUrl: string,
+    configureQuery?: (query: KqlBuilder) => KqlBuilder,
+  ): string {
     const siteRoot = siteUrl.endsWith('/') ? siteUrl.slice(0, -1) : siteUrl;
-    return new KqlBuilder()
+    const query = new KqlBuilder()
       .where('path', Operator.Contains, `${siteRoot}/*`)
       .group((subBuilder) =>
         subBuilder
           .where('contentClass', Operator.Contains, ContentClass.DocumentLibrary)
           .or()
           .where('contentClass', Operator.Contains, ContentClass.WebPageLibrary),
-      )
-      .build();
+      );
+    return (configureQuery?.(query) ?? query).build();
   }
 
   private toSiteContentItem(

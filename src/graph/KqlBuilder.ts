@@ -30,6 +30,7 @@ export enum ExpressionType {
   Restriction = 'Restriction',
   Range = 'Range',
   Not = 'Not',
+  Empty = 'Empty',
   Group = 'Group',
 }
 
@@ -91,6 +92,7 @@ type Expression =
   | { type: ExpressionType.Restriction; restriction: PropertyRestriction }
   | { type: ExpressionType.Range; range: RangeRestriction }
   | { type: ExpressionType.Not; expression: Expression }
+  | { type: ExpressionType.Empty; property: QueryableField }
   | {
       type: ExpressionType.Group;
       expressions: Expression[];
@@ -159,6 +161,13 @@ export class KqlBuilder {
     return this;
   }
 
+  isEmpty<K extends QueryableField>(property: K): this {
+    this.entries.push({
+      expression: { type: ExpressionType.Empty, property },
+    });
+    return this;
+  }
+
   group(fn: (subBuilder: KqlBuilder) => KqlBuilder): this {
     const subBuilder = new KqlBuilder();
     fn(subBuilder);
@@ -220,6 +229,9 @@ export class KqlBuilder {
 
       case ExpressionType.Not:
         return `NOT ${this.serialize(expression.expression)}`;
+
+      case ExpressionType.Empty:
+        return `NOT ${expression.property}:*`;
 
       case ExpressionType.Group: {
         const inner = expression.expressions

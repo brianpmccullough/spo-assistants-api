@@ -156,6 +156,9 @@ mapping, and tests.
   Graph operation services and return compact document and site-page result lists
   to the model. Search scopes are restricted to `driveItem` documents and
   `listItem` site pages; other list-item types are excluded.
+- `find_stale_content` has no user-settable parameters. It finds the same
+  document and site-page scope where `lastModifiedTimeForRetention` is at least
+  two years old and `viewsLifetime` is either zero or absent.
 - The SDK is the current LLM-loop seam, while Graph operations stay ordinary
   NestJS dependencies reusable by a future registry, MCP adapter, or non-LLM
   endpoint.
